@@ -1,0 +1,19 @@
+# Protect hidden files from being viewed
+<Files .*>
+	Order Deny,Allow
+	Deny From All
+</Files>
+
+# Enable URL rewriting
+RewriteEngine On
+
+# URL-path of the installation
+RewriteBase /github/kohanajobs/
+
+# Protect application and system files from being viewed
+RewriteRule ^(?:application|modules|system)\b - [F,L]
+
+# Allow any real files to be displayed directly,
+# and rewrite all other URLs to index.php/URL
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule .* index.php/$0 [PT]

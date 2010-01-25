@@ -1,0 +1,2 @@
+# Matches all files that don't begin with a dot
+[^.]*
