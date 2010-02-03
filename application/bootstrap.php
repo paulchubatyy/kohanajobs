@@ -8,7 +8,7 @@
  * @see  http://docs.kohanaphp.com/about.configuration
  * @see  http://php.net/timezones
  */
-date_default_timezone_set('Europe/Brussels');
+date_default_timezone_set('Europe/Berlin');
 
 /**
  * Set the default locale.
@@ -50,7 +50,7 @@ ini_set('unserialize_callback_func', 'spl_autoload_call');
  * - boolean  caching     enable or disable internal caching                 FALSE
  */
 Kohana::init(array(
-	'base_url' => '/github/kohana/',
+	'base_url' => '/localhost/kohanajobs/',
 	));
 
 /**

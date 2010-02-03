@@ -8,7 +8,7 @@
 RewriteEngine On
 
 # URL-path of the installation
-RewriteBase /github/kohanajobs/
+RewriteBase /kohanajobs/
 
 # Protect application and system files from being viewed
 RewriteRule ^(?:application|modules|system)\b - [F,L]
