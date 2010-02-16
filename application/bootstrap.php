@@ -86,9 +86,24 @@ Kohana::modules(array(
  */
 if ( ! Route::cache())
 {
-	Route::set('home', '')
+	// List of all jobs
+	Route::set('jobs', '')
 		->defaults(array(
-			'controller' => 'home',
+			'controller' => 'jobs',
+			'action'     => 'index',
+		));
+
+	// A single job
+	Route::set('job', 'jobs/<id>', array('id' => '\d+'))
+		->defaults(array(
+			'controller' => 'job',
+			'action'     => 'index',
+		));
+
+	// Post a new job
+	Route::set('post', 'post')
+		->defaults(array(
+			'controller' => 'post',
 			'action'     => 'index',
 		));
 
