@@ -3,6 +3,14 @@
 //-- Environment setup --------------------------------------------------------
 
 /**
+* Set the production status by the domain.
+*/
+if ($_SERVER['SERVER_ADDR'] !== '127.0.0.1')
+{
+	Kohana::$environment = 'production';
+}
+
+/**
  * Set the default time zone.
  *
  * @see  http://docs.kohanaphp.com/about.configuration
@@ -50,7 +58,10 @@ ini_set('unserialize_callback_func', 'spl_autoload_call');
  * - boolean  caching     enable or disable internal caching                 FALSE
  */
 Kohana::init(array(
-	'base_url' => '/github/kohana/',
+	'base_url'   => '/github/kohana/',
+	'index_file' => FALSE,
+	'profile'    => Kohana::$environment !== 'production',
+	'caching'    => Kohana::$environment === 'production',
 	));
 
 /**
@@ -73,11 +84,17 @@ Kohana::modules(array(
  * Set the routes. Each route must have a minimum of a name, a URI and a set of
  * defaults for the URI.
  */
-Route::set('home', '')
-	->defaults(array(
-		'controller' => 'home',
-		'action'     => 'index',
-	));
+if ( ! Route::cache())
+{
+	Route::set('home', '')
+		->defaults(array(
+			'controller' => 'home',
+			'action'     => 'index',
+		));
+
+	// Cache the routes in production
+	Route::cache(Kohana::$environment === 'production');
+}
 
 /**
  * Execute the main request. A source of the URI can be passed, eg: $_SERVER['PATH_INFO'].
