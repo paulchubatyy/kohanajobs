@@ -16,7 +16,7 @@ date_default_timezone_set('Europe/Berlin');
  * @see  http://docs.kohanaphp.com/about.configuration
  * @see  http://php.net/setlocale
  */
-setlocale(LC_ALL, 'en_US.utf-8');
+setlocale(LC_ALL, 'de_DE.utf-8');
 
 /**
  * Enable the Kohana auto-loader.
@@ -50,7 +50,10 @@ ini_set('unserialize_callback_func', 'spl_autoload_call');
  * - boolean  caching     enable or disable internal caching                 FALSE
  */
 Kohana::init(array(
-	'base_url' => '/localhost/kohanajobs/',
+	'base_url'   => '/localhost/kohanajobs/',
+	'index_file' => '',
+	'profile'    => FALSE,
+	'caching'    => TRUE,
 	));
 
 /**
