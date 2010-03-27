@@ -3,6 +3,14 @@
 //-- Environment setup --------------------------------------------------------
 
 /**
+* Set the production status by the domain.
+*/
+if ($_SERVER['SERVER_ADDR'] !== '127.0.0.1')
+{
+	Kohana::$environment = 'production';
+}
+
+/**
  * Set the default time zone.
  *
  * @see  http://docs.kohanaphp.com/about.configuration
@@ -76,11 +84,32 @@ Kohana::modules(array(
  * Set the routes. Each route must have a minimum of a name, a URI and a set of
  * defaults for the URI.
  */
-Route::set('home', '')
-	->defaults(array(
-		'controller' => 'home',
-		'action'     => 'index',
-	));
+if ( ! Route::cache())
+{
+	// List of all jobs
+	Route::set('jobs', '')
+		->defaults(array(
+			'controller' => 'jobs',
+			'action'     => 'index',
+		));
+
+	// A single job
+	Route::set('job', 'jobs/<id>', array('id' => '\d+'))
+		->defaults(array(
+			'controller' => 'job',
+			'action'     => 'index',
+		));
+
+	// Post a new job
+	Route::set('post', 'post')
+		->defaults(array(
+			'controller' => 'post',
+			'action'     => 'index',
+		));
+
+	// Cache the routes in production
+	Route::cache(Kohana::$environment === 'production');
+}
 
 /**
  * Execute the main request. A source of the URI can be passed, eg: $_SERVER['PATH_INFO'].
