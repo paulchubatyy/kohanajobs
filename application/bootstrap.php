@@ -81,6 +81,7 @@ Kohana::$config->attach(new Kohana_Config_File);
 Kohana::modules(array(
 	'auth'     => MODPATH.'auth',
 	'database' => MODPATH.'database',
+	'orm'      => MODPATH.'orm',
 	));
 
 /**

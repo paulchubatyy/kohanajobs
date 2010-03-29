@@ -4,7 +4,7 @@ class Controller_Post extends Controller_Website {
 
 	public function action_index()
 	{
-		$this->template->content = 'New job form';
+		$this->template->content = View::factory('post');
 	}
 
 }

@@ -4,7 +4,8 @@ class Controller_Job extends Controller_Website {
 
 	public function action_index()
 	{
-		$this->template->content = 'Display a single job with ID: '.$this->request->param('id');
+		$this->template->content = View::factory('job')
+			->set('job', ORM::factory('job', (int) $this->request->param('id')));
 	}
 
 }
