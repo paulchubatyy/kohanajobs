@@ -16,5 +16,11 @@
 
 	<!-- Footer -->
 
+	<?php if (Kohana::$environment !== 'production') { ?>
+		<div id="kohana-profiler">
+			<?php echo View::factory('profiler/stats') ?>
+		</div>
+	<?php } ?>
+
 </body>
 </html>
