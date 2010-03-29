@@ -11,7 +11,7 @@ RewriteEngine On
 RewriteBase /github/kohanajobs/
 
 # Protect application and system files from being viewed
-RewriteRule ^(?:application|modules|system)\b - [F,L]
+RewriteRule ^(?:application|modules|system)\b index.php/$0 [L]
 
 # Allow any real files to be displayed directly,
 # and rewrite all other URLs to index.php/URL
