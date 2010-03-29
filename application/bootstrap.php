@@ -4,8 +4,9 @@
 
 /**
 * Set the production status by the domain.
+* Note: the default value for Kohana::$environment is 'development'.
 */
-if ($_SERVER['SERVER_ADDR'] !== '127.0.0.1')
+if ($_SERVER['HTTP_HOST'] !== '127.0.0.1' AND $_SERVER['HTTP_HOST'] !== 'localhost')
 {
 	Kohana::$environment = 'production';
 }
