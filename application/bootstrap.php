@@ -4,8 +4,9 @@
 
 /**
 * Set the production status by the domain.
+* Note: the default value for Kohana::$environment is 'development'.
 */
-if ($_SERVER['SERVER_ADDR'] !== '127.0.0.1')
+if ($_SERVER['HTTP_HOST'] !== '127.0.0.1' AND $_SERVER['HTTP_HOST'] !== 'localhost')
 {
 	Kohana::$environment = 'production';
 }
@@ -58,10 +59,10 @@ ini_set('unserialize_callback_func', 'spl_autoload_call');
  * - boolean  caching     enable or disable internal caching                 FALSE
  */
 Kohana::init(array(
-	'base_url'   => '/localhost/kohanajobs/',
-	'index_file' => '',
-	'profile'    => FALSE,
-	'caching'    => TRUE,
+	'base_url'   => '/kohanajobs/',
+	'index_file' => FALSE,
+	'profile'    => Kohana::$environment !== 'production',
+	'caching'    => Kohana::$environment === 'production',
 	));
 
 /**
@@ -78,6 +79,9 @@ Kohana::$config->attach(new Kohana_Config_File);
  * Enable modules. Modules are referenced by a relative or absolute path.
  */
 Kohana::modules(array(
+	'auth'     => MODPATH.'auth',
+	'database' => MODPATH.'database',
+	'orm'      => MODPATH.'orm',
 	));
 
 /**

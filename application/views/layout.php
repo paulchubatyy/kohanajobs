@@ -7,14 +7,30 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<title><?php echo HTML::chars($title) ?></title>
 
+	<link rel="stylesheet" type="text/css" href="<?php echo URL::site('css/kohanajobs.css') ?>" />
+
 </head>
 <body>
 
-	<!-- Header -->
+	<div id="header">
+		<?php echo HTML::anchor('', 'KohanaJobs') ?>
+	</div>
+
+	<?php if (Request::instance()->uri !== Route::get('post')->uri()) { ?>
+		<p><?php echo HTML::anchor(Route::get('post')->uri(), 'Post a new job') ?></p>
+	<?php } ?>
 
 	<?php echo $content ?>
 
-	<!-- Footer -->
+	<div id="footer">
+		© <?php echo date('Y') ?>
+	</div>
+
+	<?php if (Kohana::$environment !== 'production') { ?>
+		<div id="kohana-profiler">
+			<?php echo View::factory('profiler/stats') ?>
+		</div>
+	<?php } ?>
 
 </body>
 </html>
