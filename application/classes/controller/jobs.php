@@ -12,7 +12,7 @@ class Controller_Jobs extends Controller_Website {
 		));
 
 		$this->template->content = View::factory('jobs')
-			->set('jobs', $jobs->limit($pagination->items_per_page)->offset($pagination->offset)->find_all())
+			->set('jobs', $jobs->order_by('created', 'DESC')->limit($pagination->items_per_page)->offset($pagination->offset)->find_all())
 			->set('total_jobs', $total)
 			->set('pagination', $pagination);
 	}

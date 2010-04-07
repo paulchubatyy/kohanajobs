@@ -13,14 +13,37 @@
 <body>
 
 	<div id="header">
-		<?php echo HTML::anchor('', 'KohanaJobs') ?>
-	</div>
+		<h1 id="identity"><?php echo HTML::anchor('', HTML::image('img/layout/kohanajobs.png', array('alt' => 'KohanaJobs'))) ?></h1>
 
 	<?php if (Request::instance()->uri !== Route::get('post')->uri()) { ?>
-		<p><?php echo HTML::anchor(Route::get('post')->uri(), 'Post a new job') ?></p>
+		<p id="post"><?php echo HTML::anchor(Route::get('post')->uri(), HTML::image('img/layout/post.png', array('alt' => __('Post a new job')))) ?></p>
 	<?php } ?>
 
-	<?php echo $content ?>
+	</div><!-- #header -->
+
+	<div id="main">
+		<div id="content">
+		<?php echo $content ?>
+
+		</div>
+
+		<div id="sidebar">
+		<?php echo View::factory('sidebar/intro') ?>
+
+		<?php echo View::factory('sidebar/kohana') ?>
+		
+		<?php if (Request::instance()->uri === Route::get('post')->uri()): ?>
+		<?php echo View::factory('sidebar/run') ?>
+
+		<?php echo View::factory('sidebar/cost') ?>
+		<?php else: ?>
+		<?php echo View::factory('sidebar/post') ?>
+		<?php endif ?>
+
+		<?php echo View::factory('sidebar/faq') ?>
+
+		</div>
+	</div><!-- #main -->
 
 	<div id="footer">
 		© <?php echo date('Y') ?>
