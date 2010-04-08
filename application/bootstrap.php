@@ -4,11 +4,11 @@
 
 /**
 * Set the production status by the domain.
-* Note: the default value for Kohana::$environment is 'development'.
+* Note: the default value for Kohana::$environment is Kohana::DEVELOPMENT.
 */
 if ($_SERVER['HTTP_HOST'] !== '127.0.0.1' AND $_SERVER['HTTP_HOST'] !== 'localhost')
 {
-	Kohana::$environment = 'production';
+	Kohana::$environment = Kohana::PRODUCTION;
 }
 
 /**
@@ -61,8 +61,8 @@ ini_set('unserialize_callback_func', 'spl_autoload_call');
 Kohana::init(array(
 	'base_url'   => '/kohanajobs/',
 	'index_file' => FALSE,
-	'profile'    => Kohana::$environment !== 'production',
-	'caching'    => Kohana::$environment === 'production',
+	'profile'    => Kohana::$environment !== Kohana::PRODUCTION,
+	'caching'    => Kohana::$environment === Kohana::PRODUCTION,
 	));
 
 /**
@@ -113,7 +113,7 @@ if ( ! Route::cache())
 		));
 
 	// Cache the routes in production
-	Route::cache(Kohana::$environment === 'production');
+	Route::cache(Kohana::$environment === Kohana::PRODUCTION);
 }
 
 /**

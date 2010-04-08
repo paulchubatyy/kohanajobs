@@ -49,7 +49,7 @@
 		© <?php echo date('Y') ?>
 	</div>
 
-	<?php if (Kohana::$environment !== 'production') { ?>
+	<?php if (Kohana::$environment !== Kohana::PRODUCTION) { ?>
 		<div id="kohana-profiler">
 			<?php echo View::factory('profiler/stats') ?>
 		</div>
