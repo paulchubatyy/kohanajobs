@@ -4,34 +4,42 @@ class Controller_Post extends Controller_Website {
 
 	public function action_index()
 	{
-		$this->template->content = View::factory('post')
-			->bind('errors', $errors)
-			->bind('defaults', $fields);
-
 		$job = ORM::factory('job');
-		$fields = array(
-			'company'     => '',
-			'location'    => '',
-			'website'     => 'http://',
-			'email'       => '',
-			'title'       => '',
-			'description' => '',
-			'apply'       => '',
-		);
+		$errors = array();
 
-		if (isset($_POST))
+		$this->template->content = View::factory('post')
+			->set('job', $job)
+			->bind('preview', $preview)
+			->bind('errors', $errors);
+
+		if (isset($_POST) AND ! empty($_POST))
 		{
-			if ($job->values($_POST)->check())
+			$job->values($_POST, array('company', 'location', 'website', 'email', 'title', 'description', 'apply'));
+
+			if (isset($_POST['preview']))
 			{
-				$job->save();
-				
-				$this->request->redirect('');
+				$preview = View::factory('job')->set('job', $job);
+			}
+
+			if ( ! isset($_POST['terms']))
+			{
+				// TODO: Use Validation?
+				$errors += array('terms' => __('Agree to the terms of use in order to post a job.'));
+			}
+
+			// Check the data against validation rules defined in the model
+			if ($job->check())
+			{
+				// Save the model
+				if (empty($errors) AND $job->save())
+				{
+					// Redirect to job listing
+					$this->request->redirect(Route::get('jobs')->uri());
+				}
 			}
 			else
 			{
-				$errors = $job->validate()->errors('post');
-				echo Kohana::debug($job->as_array());
-				$fields = Arr::overwrite($fields, $job->as_array());
+				$errors = $job->validate()->errors('post/errors') + $errors;
 			}
 		}
 	}

@@ -13,14 +13,18 @@
 <body>
 
 	<div id="header">
-		<?php echo HTML::anchor('', 'KohanaJobs') ?>
-	</div>
+		<h1 id="identity">KohanaJobs</h1>
 
 	<?php if (Request::instance()->uri !== Route::get('post')->uri()) { ?>
-		<p><?php echo HTML::anchor(Route::get('post')->uri(), 'Post a new job') ?></p>
+		<p id="post"><?php echo HTML::anchor(Route::get('post')->uri(), 'Post a new job') ?></p>
 	<?php } ?>
 
+	</div><!-- #header -->
+
+	<div id="content">
 	<?php echo $content ?>
+
+	</div><!-- #content -->
 
 	<div id="footer">
 		© <?php echo date('Y') ?>
