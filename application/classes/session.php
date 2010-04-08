@@ -8,4 +8,4 @@ abstract class Session extends Kohana_Session {
 		return parent::instance('database', $id);
 	}
 
-} 
+}

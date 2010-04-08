@@ -17,4 +17,4 @@ CREATE TABLE `sessions` (
   `contents` text NOT NULL,
   PRIMARY KEY  (`session_id`),
   KEY `last_active` (`last_active`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
