@@ -14,6 +14,9 @@ abstract class Controller_Website extends Controller_Template {
 	{
 		parent::before();
 
+		// Start a session
+		Session::instance();
+
 		if ($this->auto_render)
 		{
 			// Initialize default values
