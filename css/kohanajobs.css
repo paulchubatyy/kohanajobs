@@ -1,1 +1,6 @@
+/* Just some temporary styles to lessen the clutter */
 body { margin:0 auto; width:960px; font-family:sans-serif; }
+table { width:100%; }
+th { background:#fcfcfc; }
+th, td { padding:0.5em; border:1px solid #bbb; }
+#header, #footer { padding:1em; background:#ccc; }

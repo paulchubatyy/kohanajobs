@@ -2,7 +2,7 @@
 
 <form id="jobform" action="<?php echo URL::site(Route::get('post')->uri()) ?>#formerrors" method="post">
 
-	<h2><?php echo __('Create a new job listing') ?></h2>
+	<h1><?php echo __('Create a new job listing') ?></h1>
 
 	<?php if ( ! empty($errors)): ?>
 		<div id="formerrors" class="errorbox">

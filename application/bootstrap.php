@@ -112,6 +112,13 @@ if ( ! Route::cache())
 			'action'     => 'index',
 		));
 
+	// User system related
+	Route::set('user', 'user/<action>')
+		->defaults(array(
+			'controller' => 'user',
+			'action'     => 'index',
+		));
+
 	// Cache the routes in production
 	Route::cache(Kohana::$environment === Kohana::PRODUCTION);
 }
