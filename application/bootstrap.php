@@ -118,6 +118,11 @@ if ( ! Route::cache())
 			'controller' => 'user',
 			'action'     => 'index',
 		));
+	Route::set('user/confirm', 'user/confirm/<id>/<code>', array('id' => '\d+'))
+		->defaults(array(
+			'controller' => 'user',
+			'action'     => 'confirm',
+		));
 
 	// Cache the routes in production
 	Route::cache(Kohana::$environment === Kohana::PRODUCTION);

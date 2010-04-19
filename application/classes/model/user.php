@@ -2,6 +2,14 @@
 
 class Model_User extends Model_Auth_User {
 
+	public function __construct()
+	{
+		// Override default min_length
+		$this->_rules['username']['min_length'] = array(3);
+
+		parent::__construct();
+	}
+
 	/**
 	 * Validates signup information and creates a new user.
 	 *
@@ -47,4 +55,42 @@ class Model_User extends Model_Auth_User {
 		return $status;
 	}
 
+	/**
+	 * Confirms a user signup by validating the confirmation link.
+	 *
+	 * @param   integer  user id
+	 * @param   string   confirmation code
+	 * @return  boolean
+	 */
+	public function confirm($id, $code)
+	{
+		$this->find($id);
+
+		if ( ! $this->loaded())
+		{
+			// Invalid user id
+			return FALSE;
+		}
+
+		if ($this->confirmed)
+		{
+			// User is already confirmed
+			return FALSE;
+		}
+
+		if ($code !== Auth::instance()->hash_password($this->email, Auth::instance()->find_salt($code)))
+		{
+			// Invalid confirmation code
+			return FALSE;
+		}
+
+		// Confirm this account
+		$this->confirmed = TRUE;
+		$this->save();
+
+		// Give the user the "user" role
+		$this->add('roles', ORM::factory('role', array('name' => 'user')));
+
+		return TRUE;
+	}
 }
