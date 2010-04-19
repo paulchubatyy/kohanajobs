@@ -11,6 +11,39 @@ class Model_User extends Model_Auth_User {
 	}
 
 	/**
+	 * Validates login information and logs a user in.
+	 *
+	 * @param   array    values to check
+	 * @param   boolean  enable autologin
+	 * @return  boolean
+	 */
+	public function login(array & $array, $remember = FALSE)
+	{
+		$array = Validate::factory($array)
+			->filter(TRUE, 'trim')
+			->rules('username', $this->_rules['username'])
+			->rules('password', $this->_rules['password']);
+
+		if ($array->check())
+		{
+			// Attempt to load the user
+			$this->where('username', '=', $array['username'])->find();
+
+			if ($this->loaded() AND Auth::instance()->login($this, $array['password'], $remember))
+			{
+				// Login is successful
+				return TRUE;
+			}
+			else
+			{
+				$array->error('username', 'invalid');
+			}
+		}
+
+		return FALSE;
+	}
+
+	/**
 	 * Validates signup information and creates a new user.
 	 *
 	 * @param   array    values to check
@@ -24,25 +57,10 @@ class Model_User extends Model_Auth_User {
 			->rules('username', $this->_rules['username'])
 			->rules('email', $this->_rules['email'])
 			->rules('password', $this->_rules['password'])
-			->rules('password_confirm', $this->_rules['password_confirm']);
+			->rules('password_confirm', $this->_rules['password_confirm'])
+			->callback('username', array($this, 'username_available'))
+			->callback('email', array($this, 'email_available'));
 
-		// Add validation callbacks for all fields
-		foreach ($this->_callbacks as $field => $callbacks)
-		{
-			foreach ($callbacks as $callback)
-			{
-				if (is_string($callback) AND strpos($callback, '::') === FALSE)
-				{
-					// Add $this object to the callback method,
-					// which is why this whole callback loop is needed.
-					$callback = array($this, $callback);
-				}
-
-				$array->callback($field, $callback);
-			}
-		}
-
-		// Validate
 		if ($status = $array->check())
 		{
 			// Add user

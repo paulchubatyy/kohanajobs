@@ -17,6 +17,9 @@ abstract class Controller_Website extends Controller_Template {
 		// Start a session
 		Session::instance();
 
+		// Try to log in a user by cookie
+		Auth::instance()->auto_login();
+
 		if ($this->auto_render)
 		{
 			// Initialize default values

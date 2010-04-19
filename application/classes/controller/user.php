@@ -82,13 +82,7 @@ class Controller_User extends Controller_Website {
 			$post = $_POST;
 			$user = ORM::factory('user');
 
-			// TODO: Autologin checkbox
-			// Note: the login method below will remove the remember me value from $post.
-			// It would be more flexible if instead of an array it took a Validate object,
-			// then we could set ->label('remember', 'remember') to allow the value.
-			// Also, the login method has no built-in support for remember stuff.
-			// Best solution: completely build our own login method?
-			if ($user->login($post))
+			if ($user->login($post, ! empty($_POST['remember'])))
 			{
 				Request::instance()->redirect('');
 			}

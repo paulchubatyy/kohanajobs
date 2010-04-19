@@ -44,7 +44,8 @@
 		<div id="kohana-profiler">
 			<?php echo View::factory('profiler/stats') ?>
 			<p>$_POST = <?php echo Kohana::debug($_POST) ?></p><hr />
-			<p>$_SESSION = <?php echo Kohana::debug(Session::instance()->as_array()) ?></p>
+			<p>$_SESSION = <?php echo Kohana::debug(Session::instance()->as_array()) ?></p><hr />
+			<p>$_COOKIE = <?php echo Kohana::debug($_COOKIE) ?></p>
 		</div><!-- #kohana-profiler -->
 	<?php } ?>
 
