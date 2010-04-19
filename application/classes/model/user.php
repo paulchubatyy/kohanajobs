@@ -80,9 +80,9 @@ class Model_User extends Model_Auth_User {
 	 * @param   string   confirmation code
 	 * @return  boolean
 	 */
-	public function confirm($id, $code)
+	public function confirm($user_id, $code)
 	{
-		$this->find($id);
+		$this->find($user_id);
 
 		if ( ! $this->loaded())
 		{
@@ -111,4 +111,68 @@ class Model_User extends Model_Auth_User {
 
 		return TRUE;
 	}
+
+	/**
+	 * Validates an array for a matching password and password_confirm field.
+	 *
+	 * @param   array    values to check
+	 * @return  boolean
+	 */
+	public function change_password(array & $array, $_useless_redirect = 'param required for compatibility')
+	{
+		$array = Validate::factory($array)
+			->filter(TRUE, 'trim')
+			->rules('old_password', $this->_rules['password'])
+			->rules('password', $this->_rules['password'])
+			->rules('password_confirm', $this->_rules['password_confirm'])
+			->callback('old_password', array($this, 'check_password'));
+
+		if ($status = $array->check())
+		{
+			// Change the password
+			$this->password = $array['password'];
+
+			$status = $this->save();
+		}
+
+		return $status;
+	}
+
+	/**
+	 * Validates the password for the currently logged in user.
+	 * Validation callback.
+	 *
+	 * @param   object  Validate
+	 * @param   string  field name
+	 * @return  void
+	 */
+	public function check_password(Validate $array, $field)
+	{
+		if ($user = Auth::instance()->get_user())
+		{
+			$stored_password = Auth::instance()->password($user->username);
+			$salt = Auth::instance()->find_salt($stored_password);
+
+			if ($stored_password === Auth::instance()->hash_password($array[$field], $salt))
+			{
+				// Correct password
+				return;
+			}
+		}
+
+		$array->error($field, 'check_password');
+	}
+
+	/**
+	 * Allows a model use both email and username as unique identifiers.
+	 * This method also adds support for the id field.
+	 *
+	 * @param   mixed   unique value
+	 * @return  string  field name
+	 */
+	public function unique_key($value)
+	{
+		return (is_int($value)) ? 'id' : parent::unique_key($value);
+	}
+
 }

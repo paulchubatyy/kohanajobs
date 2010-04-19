@@ -121,4 +121,36 @@ class Controller_User extends Controller_Website {
 		}
 	}
 
+	public function action_password()
+	{
+		// The user is not logged in
+		if ( ! Auth::instance()->logged_in())
+		{
+			Request::instance()->redirect('');
+		}
+
+		// Show form
+		$this->template->content = View::factory('user/password')
+			->bind('post', $post)
+			->bind('errors', $errors);
+
+		// Form submitted
+		if ($_POST)
+		{
+			$post = $_POST;
+
+			$user = Auth::instance()->get_user();
+
+			if ($user->change_password($post))
+			{
+				echo 'Password changed.';
+				// Request::instance()->redirect('');
+			}
+			else
+			{
+				$errors = $post->errors();
+			}
+		}
+	}
+
 }
