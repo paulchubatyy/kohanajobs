@@ -15,7 +15,7 @@ abstract class Controller_Website extends Controller_Template {
 		parent::before();
 
 		// Start a session
-		Session::$type = 'database';
+		Session::$default = 'database';
 		Session::instance();
 
 		// Try to log in a user by cookie
