@@ -50,7 +50,6 @@ CREATE TABLE IF NOT EXISTS `sessions` (
 
 CREATE TABLE IF NOT EXISTS `users` (
   `id` int(11) unsigned NOT NULL auto_increment,
-  `confirmed` tinyint(1) unsigned NOT NULL,
   `email` varchar(127) NOT NULL,
   `username` varchar(32) NOT NULL default '',
   `password` char(50) NOT NULL,

@@ -90,7 +90,7 @@ class Model_User extends Model_Auth_User {
 			return FALSE;
 		}
 
-		if ($this->confirmed)
+		if ($this->has('roles', ORM::factory('role', array('name' => 'user'))))
 		{
 			// User is already confirmed
 			return FALSE;
@@ -101,10 +101,6 @@ class Model_User extends Model_Auth_User {
 			// Invalid confirmation code
 			return FALSE;
 		}
-
-		// Confirm this account
-		$this->confirmed = TRUE;
-		$this->save();
 
 		// Give the user the "user" role
 		$this->add('roles', ORM::factory('role', array('name' => 'user')));
