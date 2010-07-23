@@ -59,7 +59,7 @@ ini_set('unserialize_callback_func', 'spl_autoload_call');
  * - boolean  caching     enable or disable internal caching                 FALSE
  */
 Kohana::init(array(
-	'base_url'   => '/github/kohanajobs/',
+	'base_url'   => Kohana::$environment === Kohana::PRODUCTION ? '/' : '/github/kohanajobs/',
 	'index_file' => FALSE,
 	'profile'    => Kohana::$environment !== Kohana::PRODUCTION,
 	'caching'    => Kohana::$environment === Kohana::PRODUCTION,
