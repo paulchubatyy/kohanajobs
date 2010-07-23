@@ -80,6 +80,7 @@ Kohana::$config->attach(new Kohana_Config_File);
  */
 Kohana::modules(array(
 	'auth'       => MODPATH.'auth',
+	'oauth'      => MODPATH.'oauth',
 	'database'   => MODPATH.'database',
 	'orm'        => MODPATH.'orm',
 	'pagination' => MODPATH.'pagination',
