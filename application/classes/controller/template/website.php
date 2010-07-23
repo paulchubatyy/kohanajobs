@@ -24,7 +24,7 @@ abstract class Controller_Template_Website extends Controller_Template {
 		if ($this->auto_render)
 		{
 			// Initialize default values
-			$this->template->title = 'KohanaJobs';
+			$this->template->title = 'KohanaJobs v2';
 			$this->template->content = '';
 		}
 	}
