@@ -1,3 +1,6 @@
+# This file is used on your local server only.
+# It should be ignored by git.
+
 # Protect hidden files from being viewed
 <Files .*>
 	Order Deny,Allow

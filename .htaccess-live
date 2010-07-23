@@ -1,0 +1,26 @@
+# This file is used on the webfaction server by creating a symbolic link to it:
+# ln -s .htaccess-live .htaccess
+
+# Protect hidden files from being viewed
+<Files .*>
+	Order Deny,Allow
+	Deny From All
+</Files>
+
+# Enable URL rewriting
+RewriteEngine On
+
+# URL-path of the installation
+RewriteBase /
+
+# Protect application and system files from being viewed
+RewriteRule ^(?:application|modules|system)\b index.php/$0 [L]
+
+<IfModule php5_module>
+	# Allow any files or directories that exist to be displayed directly
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+
+	# Rewrite all other URLs to index.php/URL
+	RewriteRule .* index.php/$0 [PT]
+</IfModule>
