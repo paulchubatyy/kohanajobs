@@ -8,8 +8,7 @@
 */
 if ($_SERVER['HTTP_HOST'] !== 'localhost')
 {
-	// We're leaving the environment in development mode for now
-	// Kohana::$environment = Kohana::PRODUCTION;
+	Kohana::$environment = Kohana::PRODUCTION;
 }
 
 /**
