@@ -6,9 +6,10 @@
 * Set the production status by the domain.
 * Note: the default value for Kohana::$environment is Kohana::DEVELOPMENT.
 */
-if ($_SERVER['HTTP_HOST'] !== '127.0.0.1' AND $_SERVER['HTTP_HOST'] !== 'localhost')
+if ($_SERVER['HTTP_HOST'] !== 'localhost')
 {
-	Kohana::$environment = Kohana::PRODUCTION;
+	// We're leaving the environment in development mode for now
+	// Kohana::$environment = Kohana::PRODUCTION;
 }
 
 /**
