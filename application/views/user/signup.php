@@ -11,7 +11,7 @@
 
 	<p>
 		<?php echo Form::label('email', 'Your e-mail:') ?>
-		<?php echo Form::input('email', $post['email'], array('id' => 'email')) ?>
+		<?php echo Form::input('email', $post['email'], array('id' => 'email', 'type' => 'email')) ?>
 	</p>
 
 	<p>

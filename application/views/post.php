@@ -40,7 +40,7 @@
 
 		<p<?php if (isset($errors['email'])) echo ' class="error"' ?>>
 			<label for="email"><?php echo __('E-mail') ?><abbr title="required">*</abbr></label>
-			<input id="email" name="email" type="text" value="<?php echo HTML::chars($job->email) ?>" maxlength="100" size="30" />
+			<input id="email" name="email" type="email" value="<?php echo HTML::chars($job->email) ?>" maxlength="100" size="30" />
 			<samp><?php echo __('This e-mail address will not be made public. <br />We will just send you a confirmation link.') ?></samp>
 		</p>
 	</fieldset>
