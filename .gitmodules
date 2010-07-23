@@ -16,3 +16,6 @@
 [submodule "application/vendor/swiftmailer"]
 	path = application/vendor/swiftmailer
 	url = git://github.com/swiftmailer/swiftmailer.git
+[submodule "modules/oauth"]
+	path = modules/oauth
+	url = git://github.com/kohana/oauth.git
