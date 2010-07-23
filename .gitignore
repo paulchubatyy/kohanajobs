@@ -1,2 +1,4 @@
 .DS_Store
-.htaccess
+
+# Only ignore .htaccess in the current directory:
+/.htaccess
