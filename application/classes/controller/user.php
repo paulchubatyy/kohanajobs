@@ -1,6 +1,6 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
-class Controller_User extends Controller_Website {
+class Controller_User extends Controller_Template_Website {
 
 	public function action_signup()
 	{
