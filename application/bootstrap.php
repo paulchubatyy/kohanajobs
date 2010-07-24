@@ -100,7 +100,7 @@ if ( ! Route::cache())
 		));
 
 	// A single job
-	Route::set('job', 'jobs/<id>', array('id' => '\d+'))
+	Route::set('job', 'jobs/<id>', array('id' => '\d++'))
 		->defaults(array(
 			'controller' => 'job',
 			'action'     => 'index',
@@ -119,10 +119,15 @@ if ( ! Route::cache())
 			'controller' => 'user',
 			'action'     => 'index',
 		));
-	Route::set('user/confirm', 'user/confirm/<id>/<code>', array('id' => '\d+'))
+	Route::set('user/confirm_signup', 'user/confirm_signup/<id>/<code>', array('id' => '\d++'))
 		->defaults(array(
 			'controller' => 'user',
-			'action'     => 'confirm',
+			'action'     => 'confirm_signup',
+		));
+	Route::set('user/confirm_email', 'user/confirm_email/<id>/<code>/<new_email>', array('id' => '\d++'))
+		->defaults(array(
+			'controller' => 'user',
+			'action'     => 'confirm_email',
 		));
 
 	// Cache the routes in production

@@ -5,7 +5,7 @@ abstract class Controller_Template_Website extends Controller_Template {
 	/**
 	 * @var  string  page template
 	 */
-	public $template = 'layout';
+	public $template = 'template/website';
 
 	/**
 	 * @return  void

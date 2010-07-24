@@ -25,6 +25,8 @@
 
 			<?php if (Auth::instance()->logged_in()) { ?>
 				You are signed in as <?php echo HTML::chars(Auth::instance()->get_user()->username) ?> —
+				<?php echo HTML::anchor(Route::get('user')->uri(array('action' => 'change_password')), 'Change password') ?> —
+				<?php echo HTML::anchor(Route::get('user')->uri(array('action' => 'change_email')), 'Change email') ?> —
 				<?php echo HTML::anchor(Route::get('user')->uri(array('action' => 'signout')), 'Sign out') ?>
 			<?php } else { ?>
 				<?php echo HTML::anchor(Route::get('user')->uri(array('action' => 'signin')), 'Sign in') ?> or

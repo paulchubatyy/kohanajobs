@@ -2,67 +2,6 @@
 
 class Controller_User extends Controller_Template_Website {
 
-	public function action_signup()
-	{
-		// The user is already logged in
-		if (Auth::instance()->logged_in())
-		{
-			Request::instance()->redirect('');
-		}
-
-		// Show form
-		$this->template->content = View::factory('user/signup')
-			->bind('post', $post)
-			->bind('errors', $errors);
-
-		// Form submitted
-		if ($_POST)
-		{
-			// $post bound to template
-			$post = $_POST;
-
-			$user = ORM::factory('user');
-
-			if ($user->signup($post))
-			{
-				// Automatically log the user in
-				Auth::instance()->force_login($post['username']);
-
-				// Create e-mail body with account confirmation link
-				$body = View::factory('email/signup', $user->as_array())
-					->set('code', Auth::instance()->hash_password($user->email));
-
-				// Get the email configuration
-				$config = Kohana::config('email');
-
-				// Load Swift Mailer
-				require Kohana::find_file('vendor', 'swiftmailer/lib/swift_required');
-
-				// Create an email message
-				$message = Swift_Message::newInstance()
-					->setSubject('KohanaJobs Sign-up')
-					->setFrom(array('info@kohanajobs.com' => 'KohanaJobs.com'))
-					->setTo(array($user->email => $user->username))
-					->setBody($body);
-
-				// Connect to the server
-				$transport = Swift_SmtpTransport::newInstance($config->server)
-					->setUsername($config->username)
-					->setPassword($config->password);
-
-				// Send the message
-				Swift_Mailer::newInstance($transport)->send($message);
-
-				// Redirect to somewhere else
-				Request::instance()->redirect('');
-			}
-			else
-			{
-				$errors = $post->errors();
-			}
-		}
-	}
-
 	public function action_signin()
 	{
 		// The user is already logged in
@@ -105,10 +44,46 @@ class Controller_User extends Controller_Template_Website {
 		Request::instance()->redirect('');
 	}
 
-	public function action_confirm()
+	public function action_signup()
+	{
+		// The user is already logged in
+		if (Auth::instance()->logged_in())
+		{
+			Request::instance()->redirect('');
+		}
+
+		// Show form
+		$this->template->content = View::factory('user/signup')
+			->bind('post', $post)
+			->bind('errors', $errors);
+
+		// Form submitted
+		if ($_POST)
+		{
+			// $post bound to template
+			$post = $_POST;
+
+			$user = ORM::factory('user');
+
+			if ($user->signup($post))
+			{
+				// Automatically log the user in
+				Auth::instance()->force_login($post['username']);
+
+				// Redirect to somewhere else
+				Request::instance()->redirect('');
+			}
+			else
+			{
+				$errors = $post->errors();
+			}
+		}
+	}
+
+	public function action_confirm_signup()
 	{
 		// Confirm the user account
-		if (ORM::factory('user')->confirm($this->request->param('id'), $this->request->param('code')))
+		if (ORM::factory('user')->confirm_signup($this->request->param('id'), $this->request->param('code')))
 		{
 			// Sign out and redirect to sign in
 			Auth::instance()->logout();
@@ -116,12 +91,12 @@ class Controller_User extends Controller_Template_Website {
 		}
 		else
 		{
-			echo 'Confirmation failed.';
+			echo 'Signup confirmation failed.';
 			// Request::instance()->redirect('');
 		}
 	}
 
-	public function action_password()
+	public function action_change_password()
 	{
 		// The user is not logged in
 		if ( ! Auth::instance()->logged_in())
@@ -130,7 +105,7 @@ class Controller_User extends Controller_Template_Website {
 		}
 
 		// Show form
-		$this->template->content = View::factory('user/password')
+		$this->template->content = View::factory('user/change_password')
 			->bind('post', $post)
 			->bind('errors', $errors);
 
@@ -150,6 +125,54 @@ class Controller_User extends Controller_Template_Website {
 			{
 				$errors = $post->errors();
 			}
+		}
+	}
+
+	public function action_change_email()
+	{
+		// The user is not logged in
+		if ( ! Auth::instance()->logged_in())
+		{
+			Request::instance()->redirect('');
+		}
+
+		// Show form
+		$this->template->content = View::factory('user/change_email')
+			->bind('post', $post)
+			->bind('errors', $errors);
+
+		// Form submitted
+		if ($_POST)
+		{
+			$post = $_POST;
+
+			$user = Auth::instance()->get_user();
+
+			if ($user->change_email($post))
+			{
+				echo 'Confirmation link to change your email has been sent to: '.$user->email;
+				// Request::instance()->redirect('');
+			}
+			else
+			{
+				$errors = $post->errors();
+			}
+		}
+	}
+
+	public function action_confirm_email()
+	{
+		// Confirm the new email
+		if (ORM::factory('user')->confirm_email($this->request->param('id'), $this->request->param('code'), $this->request->param('new_email')))
+		{
+			// Sign out and redirect to sign in
+			Auth::instance()->logout();
+			Request::instance()->redirect(Route::get('user')->uri(array('action' => 'signin')));
+		}
+		else
+		{
+			echo 'New email confirmation failed.';
+			// Request::instance()->redirect('');
 		}
 	}
 
