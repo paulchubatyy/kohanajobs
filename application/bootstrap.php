@@ -129,6 +129,11 @@ if ( ! Route::cache())
 			'controller' => 'user',
 			'action'     => 'confirm_email',
 		));
+	Route::set('user/confirm_reset_password', 'user/confirm_reset_password/<id>/<code>/<time>', array('id' => '\d++', 'time' => '\d++'))
+		->defaults(array(
+			'controller' => 'user',
+			'action'     => 'confirm_reset_password',
+		));
 
 	// Cache the routes in production
 	Route::cache(Kohana::$environment === Kohana::PRODUCTION);

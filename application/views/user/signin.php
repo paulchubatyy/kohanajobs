@@ -12,6 +12,7 @@
 	<p>
 		<?php echo Form::label('password', 'Your password:') ?>
 		<?php echo Form::password('password', NULL, array('id' => 'password')) ?>
+		<?php echo HTML::anchor(Route::get('user')->uri(array('action' => 'reset_password')), 'Lost password?') ?>
 	</p>
 
 	<p>

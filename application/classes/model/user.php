@@ -133,6 +133,51 @@ class Model_User extends Model_Auth_User {
 		return TRUE;
 	}
 
+	public function reset_password(array & $array)
+	{
+		// Validation setup
+		$array = Validate::factory($array)
+			->filter(TRUE, 'trim')
+			->rules('email', $this->_rules['email'])
+			->callback('email', array($this, 'email_not_available'));
+
+		if ( ! $array->check())
+			return FALSE;
+
+		// Load user data
+		$this->where('email', '=', $array['email'])->find();
+
+		// Create e-mail body with reset password link
+		$time = time();
+		$body = View::factory('email/confirm_reset_password', $this->as_array())
+			// @todo set('link', 'full url')
+			->set('code', Auth::instance()->hash_password($this->email.'+'.$this->password.'+'.$this->last_login.'+'.$time))
+			->set('time', $time);
+
+		// Get the email configuration
+		$config = Kohana::config('email');
+
+		// Load Swift Mailer
+		require_once Kohana::find_file('vendor', 'swiftmailer/lib/swift_required');
+
+		// Create an email message
+		$message = Swift_Message::newInstance()
+			->setSubject('KohanaJobs - Reset password')
+			->setFrom(array('info@kohanajobs.com' => 'KohanaJobs.com'))
+			->setTo(array($this->email => $this->username))
+			->setBody($body);
+
+		// Connect to the server
+		$transport = Swift_SmtpTransport::newInstance($config->server)
+			->setUsername($config->username)
+			->setPassword($config->password);
+
+		// Send the message
+		Swift_Mailer::newInstance($transport)->send($message);
+
+		return TRUE;
+	}
+
 	/**
 	 * Validates an array for a matching password and password_confirm field.
 	 *
@@ -243,7 +288,7 @@ class Model_User extends Model_Auth_User {
 			return FALSE;
 		}
 
-		if ($this->unique_key_exists($new_email))
+		if ($this->unique_key_exists($new_email, 'email'))
 		{
 			// New email is already taken
 			return FALSE;
@@ -288,6 +333,14 @@ class Model_User extends Model_Auth_User {
 		}
 
 		$array->error($field, 'check_password');
+	}
+
+	public function email_not_available(Validate $array, $field)
+	{
+		if ( ! $this->unique_key_exists($array[$field], 'email'))
+		{
+			$array->error($field, 'email_not_available', array($array[$field]));
+		}
 	}
 
 	/**

@@ -85,7 +85,7 @@ class Controller_User extends Controller_Template_Website {
 		// Confirm the user account
 		if (ORM::factory('user')->confirm_signup($this->request->param('id'), $this->request->param('code')))
 		{
-			// Sign out and redirect to sign in
+			// Sign (a possible other user) out and redirect to sign in
 			Auth::instance()->logout();
 			Request::instance()->redirect(Route::get('user')->uri(array('action' => 'signin')));
 		}
@@ -93,6 +93,99 @@ class Controller_User extends Controller_Template_Website {
 		{
 			echo 'Signup confirmation failed.';
 			// Request::instance()->redirect('');
+		}
+	}
+
+	public function action_reset_password()
+	{
+		// The user is already logged in
+		if (Auth::instance()->logged_in())
+		{
+			Request::instance()->redirect('');
+		}
+
+		// Show form
+		$this->template->content = View::factory('user/reset_password')
+			->bind('post', $post)
+			->bind('errors', $errors);
+
+		// Form submitted
+		if ($_POST)
+		{
+			// $post bound to template
+			$post = $_POST;
+
+			$user = ORM::factory('user');
+
+			if ($user->reset_password($post))
+			{
+				echo 'Instructions to reset your password are being sent to your email address.';
+				// Request::instance()->redirect('');
+			}
+			else
+			{
+				$errors = $post->errors();
+			}
+		}
+	}
+
+	public function action_confirm_reset_password()
+	{
+		$user = ORM::factory('user')->find($this->request->param('id'));
+
+		if ( ! $user->loaded())
+		{
+			// Invalid user ID
+			exit('#A Invalid URL.');
+		}
+
+		if ($this->request->param('code') !== Auth::instance()->hash_password($user->email.'+'.$user->password.'+'.$user->last_login.'+'.$this->request->param('time'), Auth::instance()->find_salt($this->request->param('code'))))
+		{
+			// Invalid confirmation code
+			exit('#B Invalid URL.');
+		}
+
+		if ($this->request->param('time') + 3600 < time())
+		{
+			// Link expired
+			echo 'Link expired ', abs($this->request->param('time') + 3600 - time()), ' seconds ago.';
+			exit('#C Invalid URL.');
+		}
+
+		// Sign (a possible other user) out
+		Auth::instance()->logout();
+
+		// Show form
+		$this->template->content = View::factory('user/confirm_reset_password')
+			->bind('post', $post)
+			->bind('errors', $errors);
+
+		// Form submitted
+		if ($_POST)
+		{
+			// $post bound to template
+			$post = Validate::factory($_POST)
+				->filter(TRUE, 'trim')
+				->rules('password', array(
+					'not_empty'  => NULL,
+					'min_length' => array(5),
+					'max_length' => array(42),
+				))
+				->rule('password_confirm', 'matches', array('password'));
+
+			if ($post->check())
+			{
+				// Save new password
+				$user->password = $post['password'];
+				$user->save();
+
+				echo 'Your password has been changed. Go to signin form.';
+				Request::instance()->redirect(Route::get('user')->uri(array('action' => 'signin')));
+			}
+			else
+			{
+				$errors = $post->errors();
+			}
 		}
 	}
 
