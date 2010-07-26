@@ -1,4 +1,5 @@
 # These config files need to be added manually on the server:
 auth.php
+oauth.php
 database.php
 email.php

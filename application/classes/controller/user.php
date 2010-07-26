@@ -269,4 +269,67 @@ class Controller_User extends Controller_Template_Website {
 		}
 	}
 
+	public function action_oauth()
+	{
+		if ($this->token AND $this->token->name === 'access')
+		{
+			// http://apiwiki.twitter.com/Twitter-REST-API-Method%3A-account%C2%A0verify_credentials
+			$response = OAuth_Request::factory('resource', 'GET', 'http://api.twitter.com/1/account/verify_credentials.json')
+				->param('oauth_consumer_key', Kohana::config('oauth.twitter.key'))
+				->param('oauth_token', $this->token)
+				->sign(OAuth_Signature::factory('HMAC-SHA1'), $this->consumer, $this->token)
+				->execute();
+			$this->template->content = HTML::chars(print_r($response, TRUE));
+		}
+		else
+		{
+			$this->template->content = HTML::anchor($this->request->uri(array('action' => 'signin_twitter')), 'Sign in with Twitter');
+		}
+	}
+
+	public function action_signin_twitter()
+	{
+		// We will need a callback URL for the user to return to
+		$callback = URL::site($this->request->uri(array('action' => 'signin_twitter_complete')), Request::$protocol);
+
+		// Add the callback URL to the consumer
+		$this->consumer->callback($callback);
+
+		// Get a request token for the consumer
+		$token = $this->provider->request_token($this->consumer);
+
+		// Store the token
+		Cookie::set('oauth_token', serialize($token));
+
+		// Redirect to the provider's login page
+		$this->request->redirect($this->provider->authorize_url($token));
+	}
+
+	public function action_signin_twitter_complete()
+	{
+		if ($this->token AND $this->token->token !== Arr::get($_GET, 'oauth_token'))
+		{
+			// Delete the token, it is not valid
+			Cookie::delete('oauth_token');
+
+			// Send the user back to the beginning
+			$this->request->redirect($this->request->uri(array('action' => 'index')));
+		}
+
+		// Get the verifier
+		$verifier = Arr::get($_GET, 'oauth_verifier');
+
+		// Store the verifier in the token
+		$this->token->verifier($verifier);
+
+		// Exchange the request token for an access token
+		$token = $this->provider->access_token($this->consumer, $this->token);
+
+		// Store the token
+		Cookie::set('oauth_token', serialize($token));
+
+		$this->request->redirect('');
+		// $this->request->redirect($this->request->uri(array('action' => FALSE)));
+	}
+
 }

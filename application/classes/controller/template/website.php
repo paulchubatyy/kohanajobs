@@ -7,6 +7,11 @@ abstract class Controller_Template_Website extends Controller_Template {
 	 */
 	public $template = 'template/website';
 
+	// OAuth
+	protected $provider = 'twitter';
+	protected $consumer;
+	protected $token;
+
 	/**
 	 * @return  void
 	 */
@@ -20,6 +25,23 @@ abstract class Controller_Template_Website extends Controller_Template {
 
 		// Try to log in a user by cookie
 		Auth::instance()->auto_login();
+
+		// OAuth start
+		// Load the configuration for this provider
+		$config = Kohana::config('oauth.'.$this->provider);
+
+		// Create a consumer from the config
+		$this->consumer = OAuth_Consumer::factory($config);
+
+		// Load the provider
+		$this->provider = OAuth_Provider::factory($this->provider);
+
+		if ($token = Cookie::get('oauth_token'))
+		{
+			// Get the token from storage
+			$this->token = unserialize($token);
+		}
+		// OAuth end
 
 		if ($this->auto_render)
 		{
