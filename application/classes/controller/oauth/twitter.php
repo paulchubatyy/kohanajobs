@@ -54,10 +54,10 @@ class Controller_OAuth_Twitter extends Controller_OAuth_Base {
 		$this->token->verifier($verifier);
 
 		// Exchange the request token for an access token
-		$token = $this->provider->access_token($this->consumer, $this->token);
+		$this->token = $this->provider->access_token($this->consumer, $this->token);
 
 		// Store the access token
-		Cookie::set($this->cookie, serialize($token));
+		Cookie::set($this->cookie, serialize($this->token));
 
 		// At this point, we need to retrieve a unique twitter id for the user.
 		// http://apiwiki.twitter.com/Twitter-REST-API-Method%3A-account%C2%A0verify_credentials
@@ -68,7 +68,7 @@ class Controller_OAuth_Twitter extends Controller_OAuth_Base {
 			->sign(OAuth_Signature::factory('HMAC-SHA1'), $this->consumer, $this->token)
 			->execute();
 		$response = json_decode($response);
-		if ( ! $twitter_id = (int) $reponse->id)
+		if ( ! $twitter_id = (int) $response->id)
 			exit('error');
 
 		// Check whether that id exists in our users table (twitter_id field).
