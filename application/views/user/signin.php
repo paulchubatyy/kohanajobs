@@ -1,5 +1,10 @@
 <h1>Sign in</h1>
 
+<?php echo HTML::anchor(
+	Route::get('user/oauth')->uri(array('controller' => 'twitter', 'action' => 'signin')),
+	HTML::image('http://a0.twimg.com/images/dev/buttons/sign-in-with-twitter-d.png', array('alt' => 'Sign in with Twitter'))
+) ?>
+
 <?php echo Form::open() ?>
 
 	<?php echo Kohana::debug($errors) ?>
