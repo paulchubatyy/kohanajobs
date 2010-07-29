@@ -50,16 +50,17 @@ CREATE TABLE IF NOT EXISTS `sessions` (
 
 CREATE TABLE IF NOT EXISTS `users` (
   `id` int(11) unsigned NOT NULL auto_increment,
-  `email` varchar(127) NOT NULL,
-  `username` varchar(32) NOT NULL default '',
+  `twitter_id` int(11) unsigned default NULL,
+  `email` varchar(127) default NULL,
+  `username` varchar(32) default NULL,
   `password` char(50) NOT NULL,
-  `logins` int(10) unsigned NOT NULL default '0',
-  `last_login` int(10) unsigned default NULL,
+  `logins` int(11) unsigned NOT NULL,
+  `last_login` int(11) unsigned default NULL,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `uniq_username` (`username`),
-  UNIQUE KEY `uniq_email` (`email`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
-
+  UNIQUE KEY `uniq_email` (`email`),
+  UNIQUE KEY `uniq_twitter_id` (`twitter_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE IF NOT EXISTS `user_tokens` (
