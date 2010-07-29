@@ -119,6 +119,11 @@ if ( ! Route::cache())
 			'controller' => 'user',
 			'action'     => 'index',
 		));
+	Route::set('user/oauth', 'oauth/<controller>(/<action>)')
+		->defaults(array(
+			'directory'  => 'oauth',
+			'action'     => 'index',
+		));
 	Route::set('user/confirm_signup', 'user/confirm_signup/<id>/<code>', array('id' => '\d++'))
 		->defaults(array(
 			'controller' => 'user',

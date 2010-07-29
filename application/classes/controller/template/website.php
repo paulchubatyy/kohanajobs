@@ -7,10 +7,9 @@ abstract class Controller_Template_Website extends Controller_Template {
 	 */
 	public $template = 'template/website';
 
-	// OAuth
-	protected $provider = 'twitter';
-	protected $consumer;
-	protected $token;
+	// The currently logged in user (ORM object),
+	// FALSE if user is not logged in.
+	public $user;
 
 	/**
 	 * @return  void
@@ -20,28 +19,11 @@ abstract class Controller_Template_Website extends Controller_Template {
 		parent::before();
 
 		// Start a session
-		Session::$default = 'database';
 		Session::instance();
 
-		// Try to log in a user by cookie
-		Auth::instance()->auto_login();
-
-		// OAuth start
-		// Load the configuration for this provider
-		$config = Kohana::config('oauth.'.$this->provider);
-
-		// Create a consumer from the config
-		$this->consumer = OAuth_Consumer::factory($config);
-
-		// Load the provider
-		$this->provider = OAuth_Provider::factory($this->provider);
-
-		if ($token = Cookie::get('oauth_token'))
-		{
-			// Get the token from storage
-			$this->token = unserialize($token);
-		}
-		// OAuth end
+		// Get the currently logged in user.
+		// Note that get_user will also do an auto_login check.
+		$this->user = Auth::instance()->get_user();
 
 		if ($this->auto_render)
 		{
