@@ -19,3 +19,6 @@
 [submodule "modules/oauth"]
 	path = modules/oauth
 	url = git://github.com/kohana/oauth.git
+[submodule "modules/message"]
+	path = modules/message
+	url = git://github.com/GeertDD/kohana-message.git
