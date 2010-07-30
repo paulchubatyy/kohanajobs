@@ -1,4 +1,4 @@
-<h1><?php echo $total_jobs, ' ', Inflector::plural('job', $total_jobs) ?> available</h1>
+<h1><?php echo ucfirst(Text::number($total_jobs)), ' ', Inflector::plural('job', $total_jobs) ?> available</h1>
 
 <table summary="<?php echo __('List of all Kohana jobs (most recent first)') ?>">
 	<thead>

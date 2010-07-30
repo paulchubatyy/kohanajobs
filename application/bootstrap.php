@@ -63,7 +63,7 @@ Kohana::init(array(
 	'index_file' => FALSE,
 	'profile'    => Kohana::$environment !== Kohana::PRODUCTION,
 	'caching'    => Kohana::$environment === Kohana::PRODUCTION,
-	));
+));
 
 /**
  * Attach the file write to logging. Multiple writers are supported.
@@ -125,6 +125,7 @@ if ( ! Route::cache())
 			'directory'  => 'oauth',
 			'action'     => 'index',
 		));
+	// @todo Refactor following three ugly routes to use $_GET?
 	Route::set('user/confirm_signup', 'user/confirm_signup/<id>/<code>', array('id' => '\d++'))
 		->defaults(array(
 			'controller' => 'user',
@@ -149,6 +150,7 @@ if ( ! Route::cache())
  * Execute the main request. A source of the URI can be passed, eg: $_SERVER['PATH_INFO'].
  * If no source is specified, the URI will be automatically detected.
  */
+// @todo Catch 404 pages
 echo Request::instance()
 	->execute()
 	->send_headers()
