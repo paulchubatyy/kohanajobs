@@ -11,6 +11,8 @@
 </head>
 <body>
 
+	<?php echo Message::render() ?>
+
 	<div style="padding:1em; background:yellow; text-align:center;">
 		<strong>KohanaJobs v2 is still under construction.</strong><br />
 		<a href="http://www.kohanajobs.com/">Go to v1</a> or <a href="http://github.com/GeertDD/kohanajobs">Follow v2 development</a>

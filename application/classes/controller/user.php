@@ -23,6 +23,7 @@ class Controller_User extends Controller_Template_Website {
 
 			if ($user->login($post, ! empty($_POST['remember'])))
 			{
+				Message::set(Message::SUCCESS, __('Welcome back, :name!', array(':name' => $user->username)));
 				Request::instance()->redirect('');
 			}
 			else
@@ -41,6 +42,7 @@ class Controller_User extends Controller_Template_Website {
 		}
 
 		Auth::instance()->logout();
+		Message::set(Message::SUCCESS, 'You are now logged out. Bye!');
 		Request::instance()->redirect('');
 	}
 
@@ -71,6 +73,7 @@ class Controller_User extends Controller_Template_Website {
 				Auth::instance()->force_login($post['username']);
 
 				// Redirect to somewhere else
+				Message::set(Message::SUCCESS, 'Thanks for signin up. You are now logged in.');
 				Request::instance()->redirect('');
 			}
 			else

@@ -80,11 +80,12 @@ Kohana::$config->attach(new Kohana_Config_File);
  */
 Kohana::modules(array(
 	'auth'       => MODPATH.'auth',
-	'oauth'      => MODPATH.'oauth',
 	'database'   => MODPATH.'database',
+	'message'    => MODPATH.'message',
+	'oauth'      => MODPATH.'oauth',
 	'orm'        => MODPATH.'orm',
 	'pagination' => MODPATH.'pagination',
-	));
+));
 
 /**
  * Set the routes. Each route must have a minimum of a name, a URI and a set of

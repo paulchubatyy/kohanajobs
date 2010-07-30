@@ -4,3 +4,8 @@ table { width:100%; }
 th { background:#fcfcfc; }
 th, td { padding:0.5em; border:1px solid #bbb; }
 #header, #footer { padding:1em; background:#ccc; }
+#messages { margin:0; padding:0; color:#fff; list-style:none; text-align:center; }
+#messages li { margin:0 0 1px; padding:1em; }
+#messages li.success { background:green; }
+#messages li.notice { background:blue; }
+#messages li.error { background:red; }
