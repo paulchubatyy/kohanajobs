@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
+
 CREATE TABLE IF NOT EXISTS `user_tokens` (
   `id` int(11) unsigned NOT NULL auto_increment,
   `user_id` int(11) unsigned NOT NULL,

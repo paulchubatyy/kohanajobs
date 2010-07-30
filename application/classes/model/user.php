@@ -147,6 +147,8 @@ class Model_User extends Model_Auth_User {
 		// Load user data
 		$this->where('email', '=', $array['email'])->find();
 
+		// @todo What if the user logged in via OAuth? Password reset is useless then.
+
 		// Create e-mail body with reset password link
 		$time = time();
 		$body = View::factory('email/confirm_reset_password', $this->as_array())
@@ -214,10 +216,15 @@ class Model_User extends Model_Auth_User {
 	{
 		$array = Validate::factory($array)
 			->filter(TRUE, 'trim')
-			->rules('password', $this->_rules['password'])
 			->rules('email', $this->_rules['email'])
-			->callback('password', array($this, 'check_password'))
 			->callback('email', array($this, 'email_available'));
+
+		// Password check only required for non-OAuth users
+		if ( ! Auth::instance()->logged_in_oauth())
+		{
+			$array->rules('password', $this->_rules['password'])
+				->callback('password', array($this, 'check_password'));
+		}
 
 		// We need to call the check() method first because it resets the internal _errors property.
 		$array->check();
@@ -247,6 +254,8 @@ class Model_User extends Model_Auth_User {
 		$message = Swift_Message::newInstance()
 			->setSubject('KohanaJobs - Change email')
 			->setFrom(array('info@kohanajobs.com' => 'KohanaJobs.com'))
+			// @todo OAuth users may be entering their first email address, then also sent it to that address, not the old one (NULL value in db)
+			// @todo OAuth users don't have a username field, leave it out, or use other name field if available
 			->setTo(array($array['email'] => $this->username))
 			->setBody($body);
 

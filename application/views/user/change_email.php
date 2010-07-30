@@ -9,10 +9,12 @@
 
 	<?php echo Kohana::debug($errors) ?>
 
-	<p>
-		<?php echo Form::label('password', 'Password:') ?>
-		<?php echo Form::password('password', NULL, array('id' => 'password')) ?>
-	</p>
+	<?php if ( ! Auth::instance()->logged_in_oauth()) { ?>
+		<p>
+			<?php echo Form::label('password', 'Password:') ?>
+			<?php echo Form::password('password', NULL, array('id' => 'password')) ?>
+		</p>
+	<?php } ?>
 
 	<p>
 		<?php echo Form::label('email', 'New email:') ?>
