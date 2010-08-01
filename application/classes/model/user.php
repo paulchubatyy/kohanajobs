@@ -17,26 +17,26 @@ class Model_User extends Model_Auth_User {
 	 * @param   boolean  enable autologin
 	 * @return  boolean
 	 */
-	public function login(array & $array, $remember = FALSE)
+	public function login(array & $data, $remember = FALSE)
 	{
-		$array = Validate::factory($array)
+		$data = Validate::factory($data)
 			->filter(TRUE, 'trim')
 			->rules('username', $this->_rules['username'])
 			->rules('password', $this->_rules['password']);
 
-		if ($array->check())
+		if ($data->check())
 		{
 			// Attempt to load the user
-			$this->where('username', '=', $array['username'])->find();
+			$this->where('username', '=', $data['username'])->find();
 
-			if ($this->loaded() AND Auth::instance()->login($this, $array['password'], $remember))
+			if ($this->loaded() AND Auth::instance()->login($this, $data['password'], $remember))
 			{
 				// Login is successful
 				return TRUE;
 			}
 			else
 			{
-				$array->error('username', 'invalid');
+				$data->error('username', 'invalid');
 			}
 		}
 
@@ -44,15 +44,15 @@ class Model_User extends Model_Auth_User {
 	}
 
 	/**
-	 * Validates signup information and creates a new user.
+	 * Validates sign-up information and creates a new user.
 	 *
 	 * @param   array    values to check
 	 * @return  boolean
 	 */
-	public function signup(array & $array)
+	public function signup(array & $data)
 	{
 		// Validation setup
-		$array = Validate::factory($array)
+		$data = Validate::factory($data)
 			->filter(TRUE, 'trim')
 			->rules('username', $this->_rules['username'])
 			->rules('email', $this->_rules['email'])
@@ -61,17 +61,21 @@ class Model_User extends Model_Auth_User {
 			->callback('username', array($this, 'username_available'))
 			->callback('email', array($this, 'email_available'));
 
-		if ($status = $array->check())
+		if ($status = $data->check())
 		{
 			// Add user
-			$status = $this->values($array)->save();
+			$status = $this->values($data)->save();
 
 			// Give user the "login" role
 			$this->add('roles', ORM::factory('role', array('name' => 'login')));
 
 			// Create e-mail body with account confirmation link
 			$body = View::factory('email/confirm_signup', $this->as_array())
-				->set('code', Auth::instance()->hash_password($this->email));
+				->set('url', URL::site(
+					Route::get('user')->uri(array('action' => 'confirm_signup')).
+					'?id='.$this->id.'&token='.Auth::instance()->hash_password($this->email),
+					TRUE // Add protocol to URL
+				));
 
 			// Get the email configuration
 			$config = Kohana::config('email');
@@ -99,33 +103,33 @@ class Model_User extends Model_Auth_User {
 	}
 
 	/**
-	 * Confirms a user signup by validating the confirmation link.
+	 * Confirms a user sign-up by validating the confirmation link.
 	 *
 	 * @param   integer  user id
-	 * @param   string   confirmation code
+	 * @param   string   confirmation token
 	 * @return  boolean
 	 */
-	public function confirm_signup($user_id, $code)
+	public function confirm_signup($id, $token)
 	{
-		$this->find($user_id);
+		// Don't even bother, save us the user lookup query
+		if (empty($id) OR empty($token))
+			return FALSE;
 
+		// Load user by id
+		$this->find($id);
+
+		// Invalid user id
 		if ( ! $this->loaded())
-		{
-			// Invalid user id
 			return FALSE;
-		}
 
+		// Invalid confirmation token
+		if ($token !== Auth::instance()->hash_password($this->email, Auth::instance()->find_salt($token)))
+			return FALSE;
+
+		// User is already confirmed.
+		// We're not showing an error message.
 		if ($this->has('roles', ORM::factory('role', array('name' => 'user'))))
-		{
-			// User is already confirmed
-			return FALSE;
-		}
-
-		if ($code !== Auth::instance()->hash_password($this->email, Auth::instance()->find_salt($code)))
-		{
-			// Invalid confirmation code
-			return FALSE;
-		}
+			return TRUE;
 
 		// Give the user the "user" role
 		$this->add('roles', ORM::factory('role', array('name' => 'user')));
@@ -133,28 +137,29 @@ class Model_User extends Model_Auth_User {
 		return TRUE;
 	}
 
-	public function reset_password(array & $array)
+	public function reset_password(array & $data)
 	{
 		// Validation setup
-		$array = Validate::factory($array)
+		$data = Validate::factory($data)
 			->filter(TRUE, 'trim')
 			->rules('email', $this->_rules['email'])
 			->callback('email', array($this, 'email_not_available'));
 
-		if ( ! $array->check())
+		if ( ! $data->check())
 			return FALSE;
 
 		// Load user data
-		$this->where('email', '=', $array['email'])->find();
-
-		// @todo What if the user logged in via OAuth? Password reset is useless then.
+		$this->where('email', '=', $data['email'])->find();
 
 		// Create e-mail body with reset password link
 		$time = time();
 		$body = View::factory('email/confirm_reset_password', $this->as_array())
-			// @todo set('link', 'full url')
-			->set('code', Auth::instance()->hash_password($this->email.'+'.$this->password.'+'.$this->last_login.'+'.$time))
-			->set('time', $time);
+			->set('time', $time)
+			->set('url', URL::site(
+				Route::get('user')->uri(array('action' => 'confirm_reset_password')).
+				'?id='.$this->id.'&token='.Auth::instance()->hash_password($this->email.'+'.$this->password.'+'.$this->last_login.'+'.$time).'&time='.$time,
+				TRUE // Add protocol to URL
+			));
 
 		// Get the email configuration
 		$config = Kohana::config('email');
@@ -186,19 +191,19 @@ class Model_User extends Model_Auth_User {
 	 * @param   array    values to check
 	 * @return  boolean
 	 */
-	public function change_password(array & $array, $_useless_redirect = 'param required for compatibility')
+	public function change_password(array & $data, $_useless_redirect = 'param required for compatibility')
 	{
-		$array = Validate::factory($array)
+		$data = Validate::factory($data)
 			->filter(TRUE, 'trim')
 			->rules('old_password', $this->_rules['password'])
 			->rules('password', $this->_rules['password'])
 			->rules('password_confirm', $this->_rules['password_confirm'])
 			->callback('old_password', array($this, 'check_password'));
 
-		if ($status = $array->check())
+		if ($status = $data->check())
 		{
 			// Change the password
-			$this->password = $array['password'];
+			$this->password = $data['password'];
 
 			$status = $this->save();
 		}
@@ -207,14 +212,14 @@ class Model_User extends Model_Auth_User {
 	}
 
 	/**
-	 * Step 1 in an email address change.
+	 * Step 1 in an email address change: the form.
 	 *
 	 * @param   array    values to check
 	 * @return  boolean
 	 */
-	public function change_email(array & $array)
+	public function change_email(array & $data)
 	{
-		$array = Validate::factory($array)
+		$data = Validate::factory($data)
 			->filter(TRUE, 'trim')
 			->rules('email', $this->_rules['email'])
 			->callback('email', array($this, 'email_available'));
@@ -222,27 +227,30 @@ class Model_User extends Model_Auth_User {
 		// Password check only required for non-OAuth users
 		if ( ! Auth::instance()->logged_in_oauth())
 		{
-			$array->rules('password', $this->_rules['password'])
+			$data->rules('password', $this->_rules['password'])
 				->callback('password', array($this, 'check_password'));
 		}
 
 		// We need to call the check() method first because it resets the internal _errors property.
-		$array->check();
+		$data->check();
 
 		// Now do a manual check to see whether the new and current email aren't the same
-		if ($array['email'] == $this->email)
+		if ($data['email'] == $this->email)
 		{
-			$array->error('email', 'not_changed');
+			$data->error('email', 'not_changed');
 		}
 
-		if ($array->errors())
+		if ($data->errors())
 			return FALSE;
 
 		// Create e-mail body with email change confirmation link
 		$body = View::factory('email/confirm_email', $this->as_array())
-			// @todo set('link', 'full url')
-			->set('code', Auth::instance()->hash_password($this->email.'+'.$array['email']))
-			->set('new_email', $array['email']);
+			->set('new_email', $data['email'])
+			->set('url', URL::site(
+				Route::get('user')->uri(array('action' => 'confirm_email')).
+				'?id='.$this->id.'&token='.Auth::instance()->hash_password($this->email.'+'.$data['email']).'&email='.base64_encode($data['email']),
+				TRUE // Add protocol to URL
+			));
 
 		// Get the email configuration
 		$config = Kohana::config('email');
@@ -256,7 +264,7 @@ class Model_User extends Model_Auth_User {
 			->setFrom(array('info@kohanajobs.com' => 'KohanaJobs.com'))
 			// @todo OAuth users may be entering their first email address, then also sent it to that address, not the old one (NULL value in db)
 			// @todo OAuth users don't have a username field, leave it out, or use other name field if available
-			->setTo(array($array['email'] => $this->username))
+			->setTo(array($data['email'] => $this->username))
 			->setBody($body);
 
 		// Connect to the server
@@ -270,41 +278,41 @@ class Model_User extends Model_Auth_User {
 		return TRUE;
 	}
 
-	public function confirm_email($user_id, $code, $new_email)
+	/**
+	 * Step 2 in an email address change: the confirmation.
+	 *
+	 * @param   integer  user id
+	 * @param   string   confirmation token
+	 * @param   string   new email
+	 * @return  boolean
+	 */
+	public function confirm_email($id, $token, $email)
 	{
 		// Email was base64 encoded in URL in order to make it less visible that the URL contains an email address,
 		// not that that would be an immediate security threat. Base64 encoding makes urlencoding not necessary anymore.
-		// Urlencoding would leave dots as is, which would require a custom route regex for that segment.
-		$new_email = base64_decode($email);
+		$email = base64_decode($email);
 
-		if ( ! Validate::email($new_email))
-		{
-			// Invalid email
+		// Invalid email
+		if ( ! Validate::email($email))
 			return FALSE;
-		}
 
-		$this->find($user_id);
+		// Load user by id
+		$this->find($id);
 
+		// Invalid user id
 		if ( ! $this->loaded())
-		{
-			// Invalid user id
 			return FALSE;
-		}
 
-		if ($code !== Auth::instance()->hash_password($this->email.'+'.$new_email, Auth::instance()->find_salt($code)))
-		{
-			// Invalid confirmation code
+		// Invalid confirmation code
+		if ($token !== Auth::instance()->hash_password($this->email.'+'.$email, Auth::instance()->find_salt($token)))
 			return FALSE;
-		}
 
-		if ($this->unique_key_exists($new_email, 'email'))
-		{
-			// New email is already taken
+		// New email is already taken
+		if ($this->unique_key_exists($email, 'email'))
 			return FALSE;
-		}
 
 		// Actually change the email for the user in db
-		$this->email = $new_email;
+		$this->email = $email;
 		$this->save();
 
 		// It could be that the user changes his email address before he confirmed his signup.
@@ -327,28 +335,28 @@ class Model_User extends Model_Auth_User {
 	 * @param   string  field name
 	 * @return  void
 	 */
-	public function check_password(Validate $array, $field)
+	public function check_password(Validate $data, $field)
 	{
 		if ($user = Auth::instance()->get_user())
 		{
 			$stored_password = Auth::instance()->password($user->username);
 			$salt = Auth::instance()->find_salt($stored_password);
 
-			if ($stored_password === Auth::instance()->hash_password($array[$field], $salt))
+			if ($stored_password === Auth::instance()->hash_password($data[$field], $salt))
 			{
 				// Correct password
 				return;
 			}
 		}
 
-		$array->error($field, 'check_password');
+		$data->error($field, 'check_password');
 	}
 
-	public function email_not_available(Validate $array, $field)
+	public function email_not_available(Validate $data, $field)
 	{
-		if ( ! $this->unique_key_exists($array[$field], 'email'))
+		if ( ! $this->unique_key_exists($data[$field], 'email'))
 		{
-			$array->error($field, 'email_not_available', array($array[$field]));
+			$data->error($field, 'email_not_available', array($data[$field]));
 		}
 	}
 

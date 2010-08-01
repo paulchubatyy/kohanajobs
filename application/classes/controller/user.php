@@ -5,53 +5,69 @@ class Controller_User extends Controller_Template_Website {
 	public function action_signin()
 	{
 		// The user is already logged in
-		if (Auth::instance()->logged_in())
+		if ($this->auth->logged_in())
 		{
-			Request::instance()->redirect('');
+			Message::set(Message::NOTICE, 'Hey, you are already signed in.');
+
+			// Note that Request->redirect() will stop execution.
+			// It calls exit() at the end.
+			$this->request->redirect('');
 		}
 
 		// Show form
 		$this->template->content = View::factory('user/signin')
-			->bind('post', $post)
+			->bind('post', $post) // Used to repopulate form fields
 			->bind('errors', $errors);
 
 		// Form submitted
 		if ($_POST)
 		{
+			// At the point $post was bound to the form view (above), $post didn't exist.
+			// The cool thing is that no errors will show up then in the view.
+			// Now that we create $post to repopulate the form fields (in case of errors),
+			// ALL form field keys MUST be set to prevent "undefined index" errors.
+			// This should be no problem, as $post will be passed by reference to Model_User->login(),
+			// and in there it will be converted to a Validate object containing all field values.
+			// Whoa, what a comment! I hope you got something out of it.
 			$post = $_POST;
-			$user = ORM::factory('user');
 
-			if ($user->login($post, ! empty($_POST['remember'])))
+			// $_POST['remember'] will only be set if the "remember me" checkbox was checked
+			$remember = isset($_POST['remember']);
+
+			// Try to log the user in
+			if ($this->user->login($post, $remember))
 			{
-				Message::set(Message::SUCCESS, __('Welcome back, :name!', array(':name' => $user->username)));
-				Request::instance()->redirect('');
+				Message::set(Message::SUCCESS, __('Welcome back, :name!', array(':name' => $this->user->username)));
+				$this->request->redirect('');
 			}
-			else
-			{
-				$errors = $post->errors();
-			}
+
+			// Show the error messages.
+			// Remember, $errors is bound to the form view (above).
+			$errors = $post->errors();
 		}
 	}
 
 	public function action_signout()
 	{
-		// The user is not logged in
-		if ( ! Auth::instance()->logged_in())
+		if ( ! $this->auth->logged_in())
 		{
-			Request::instance()->redirect('');
+			Message::set(Message::NOTICE, 'Take it easy. You are already signed out.');
+			$this->request->redirect('');
 		}
 
-		Auth::instance()->logout();
-		Message::set(Message::SUCCESS, 'You are now logged out. Bye!');
-		Request::instance()->redirect('');
+		$this->auth->logout();
+
+		Message::set(Message::SUCCESS, 'You are now signed out. Bye!');
+		$this->request->redirect('');
 	}
 
 	public function action_signup()
 	{
 		// The user is already logged in
-		if (Auth::instance()->logged_in())
+		if ($this->auth->logged_in())
 		{
-			Request::instance()->redirect('');
+			Message::set(Message::NOTICE, 'If you want to sign up somebody else, please, sign out yourself first.');
+			$this->request->redirect('');
 		}
 
 		// Show form
@@ -62,51 +78,59 @@ class Controller_User extends Controller_Template_Website {
 		// Form submitted
 		if ($_POST)
 		{
-			// $post bound to template
-			$post = $_POST;
-
-			$user = ORM::factory('user');
-
-			if ($user->signup($post))
+			// Try to sign the user up
+			if ($this->user->signup($post = $_POST))
 			{
 				// Automatically log the user in
-				Auth::instance()->force_login($post['username']);
+				$this->auth->force_login($post['username']);
 
-				// Redirect to somewhere else
 				Message::set(Message::SUCCESS, 'Thanks for signin up. You are now logged in.');
-				Request::instance()->redirect('');
+				$this->request->redirect('');
 			}
-			else
-			{
-				$errors = $post->errors();
-			}
+
+			$errors = $post->errors();
 		}
 	}
 
 	public function action_confirm_signup()
 	{
-		// Confirm the user account
-		if (ORM::factory('user')->confirm_signup($this->request->param('id'), $this->request->param('code')))
+		// Grab the user id and token from the confirmation link.
+		// Note: Type casting is necessary! $_GET could contain arrays as well,
+		//       which would result in errors further down the road.
+		//       E.g. ?id=123&token[evil]=666
+		$id = (int) Arr::get($_GET, 'id');
+		$token = (string) Arr::get($_GET, 'token');
+
+		// The user trying to confirm his sign-up is accessing the site
+		// while another user (on the same browser) was still logged in.
+		if ($this->auth->logged_in() AND $id != $this->user->id)
 		{
-			// Sign (a possible other user) out and redirect to sign in
-			// @todo Compare user id from URL to id from currently logged in user, only signout if needed
-			Auth::instance()->logout();
-			Request::instance()->redirect(Route::get('user')->uri(array('action' => 'signin')));
+			// Cover your ears, we're blowing up the whole session!
+			$this->auth->logout(TRUE);
+
+			// Also, set up a new user
+			$this->user = ORM::factory('user');
 		}
-		else
+
+		// Confirm the user's sign-up
+		if ($this->user->confirm_signup($id, $token))
 		{
-			// @todo More descriptive error message: invalid link, or user already confirmed?
-			echo 'Signup confirmation failed.';
-			// Request::instance()->redirect('');
+			// @todo If logged in, redirect to profile page or something, otherwise to sign in form
+			Message::set(Message::SUCCESS, 'Rejoice. Your sign-up has been confirmed.');
+			$this->request->redirect('');
 		}
+
+		Message::set(Message::ERROR, 'Oh no! This confirmation link is invalid.');
+		$this->request->redirect('');
 	}
 
 	public function action_reset_password()
 	{
 		// The user is already logged in
-		if (Auth::instance()->logged_in())
+		if ($this->auth->logged_in())
 		{
-			Request::instance()->redirect('');
+			Message::set(Message::NOTICE, 'You are still logged in. Change your password on this page.');
+			$this->request->redirect(Route::get('user')->uri(array('action' => 'change_password')));
 		}
 
 		// Show form
@@ -117,48 +141,58 @@ class Controller_User extends Controller_Template_Website {
 		// Form submitted
 		if ($_POST)
 		{
-			// $post bound to template
-			$post = $_POST;
-
-			$user = ORM::factory('user');
-
-			if ($user->reset_password($post))
+			// Try to reset the password
+			if ($this->user->reset_password($post = $_POST))
 			{
-				echo 'Instructions to reset your password are being sent to your email address.';
-				// Request::instance()->redirect('');
+				Message::set(Message::SUCCESS, 'Instructions to reset your password are being sent to your email address.');
+				$this->request->redirect('');
 			}
-			else
-			{
-				$errors = $post->errors();
-			}
+
+			$errors = $post->errors();
 		}
 	}
 
 	public function action_confirm_reset_password()
 	{
-		$user = ORM::factory('user')->find($this->request->param('id'));
+		// Grab the user id, token and timestamp from the confirmation link.
+		$id = (int) Arr::get($_GET, 'id');
+		$token = (string) Arr::get($_GET, 'token');
+		$time = (int) Arr::get($_GET, 'time');
 
-		if ( ! $user->loaded())
+		// The user trying to reset his password is accessing the site
+		// while another user (on the same browser) was still logged in.
+		if ($this->auth->logged_in() AND $id != $this->user->id)
 		{
-			// Invalid user ID
+			// Cover your ears, we're blowing up the whole session!
+			$this->auth->logout(TRUE);
+
+			// Also, set up a new user
+			$this->user = ORM::factory('user');
+		}
+
+		// @todo Move most of the following code to the user model
+
+		// Load user by id
+		$this->user->find($id);
+
+		if ( ! $this->user->loaded())
+		{
+			// Invalid user id
 			exit('#A Invalid URL.');
 		}
 
-		if ($this->request->param('code') !== Auth::instance()->hash_password($user->email.'+'.$user->password.'+'.$user->last_login.'+'.$this->request->param('time'), Auth::instance()->find_salt($this->request->param('code'))))
+		if ($token !== $this->auth->hash_password($this->user->email.'+'.$this->user->password.'+'.$this->user->last_login.'+'.$time, $this->auth->find_salt($token)))
 		{
 			// Invalid confirmation code
 			exit('#B Invalid URL.');
 		}
 
-		if ($this->request->param('time') + 3600 < time())
+		if ($time + 3600 < time())
 		{
 			// Link expired
-			echo 'Link expired ', abs($this->request->param('time') + 3600 - time()), ' seconds ago.';
+			echo 'Link expired ', abs($time + 3600 - time()), ' seconds ago.';
 			exit('#C Invalid URL.');
 		}
-
-		// Sign (a possible other user) out
-		Auth::instance()->logout();
 
 		// Show form
 		$this->template->content = View::factory('user/confirm_reset_password')
@@ -181,31 +215,30 @@ class Controller_User extends Controller_Template_Website {
 			if ($post->check())
 			{
 				// Save new password
-				$user->password = $post['password'];
-				$user->save();
+				$this->user->password = $post['password'];
+				$this->user->save();
 
-				echo 'Your password has been changed. Go to signin form.';
-				Request::instance()->redirect(Route::get('user')->uri(array('action' => 'signin')));
+				Message::set(Message::SUCCESS, 'You can now sign in with your new password.');
+				$this->request->redirect(Route::get('user')->uri(array('action' => 'signin')));
 			}
-			else
-			{
-				$errors = $post->errors();
-			}
+
+			$errors = $post->errors();
 		}
 	}
 
 	public function action_change_password()
 	{
 		// The user is not logged in
-		if ( ! Auth::instance()->logged_in())
+		if ( ! $this->auth->logged_in())
 		{
-			Request::instance()->redirect('');
+			$this->request->redirect(Route::get('user')->uri(array('action' => 'signin')));
 		}
 
 		// OAuth users don't have a password in our database
-		if (Auth::instance()->logged_in_oauth())
+		if ($this->auth->logged_in_oauth())
 		{
-			Request::instance()->redirect('');
+			Message::set(Message::NOTICE, 'You logged in via an OAuth provider. We don\'t store a password for your account.');
+			$this->request->redirect('');
 		}
 
 		// Show form
@@ -216,28 +249,22 @@ class Controller_User extends Controller_Template_Website {
 		// Form submitted
 		if ($_POST)
 		{
-			$post = $_POST;
-
-			$user = Auth::instance()->get_user();
-
-			if ($user->change_password($post))
+			if ($this->user->change_password($post = $_POST))
 			{
-				echo 'Password changed.';
-				// Request::instance()->redirect('');
+				Message::set(Message::SUCCESS, 'You successfully changed your password. We hope you feel safer now.');
+				$this->request->redirect('');
 			}
-			else
-			{
-				$errors = $post->errors();
-			}
+
+			$errors = $post->errors();
 		}
 	}
 
 	public function action_change_email()
 	{
 		// The user is not logged in
-		if ( ! Auth::instance()->logged_in())
+		if ( ! $this->auth->logged_in())
 		{
-			Request::instance()->redirect('');
+			$this->request->redirect(Route::get('user')->uri(array('action' => 'signin')));
 		}
 
 		// Show form
@@ -248,36 +275,44 @@ class Controller_User extends Controller_Template_Website {
 		// Form submitted
 		if ($_POST)
 		{
-			$post = $_POST;
-
-			$user = Auth::instance()->get_user();
-
-			if ($user->change_email($post))
+			if ($this->user->change_email($post = $_POST))
 			{
-				echo 'Confirmation link to change your email has been sent to: '.$user->email;
-				// Request::instance()->redirect('');
+				Message::set(Message::SUCCESS, 'A confirmation link to change your email has been sent to '.$user->email.'.');
+				$this->request->redirect('');
 			}
-			else
-			{
-				$errors = $post->errors();
-			}
+
+			$errors = $post->errors();
 		}
 	}
 
 	public function action_confirm_email()
 	{
-		// Confirm the new email
-		if (ORM::factory('user')->confirm_email($this->request->param('id'), $this->request->param('code'), $this->request->param('new_email')))
+		// Grab the user id, token and new email from the confirmation link.
+		$id = (int) Arr::get($_GET, 'id');
+		$token = (string) Arr::get($_GET, 'token');
+		$email = (string) Arr::get($_GET, 'email');
+
+		// The user trying to confirm his new email is accessing the site
+		// while another user (on the same browser) was still logged in.
+		if ($this->auth->logged_in() AND $id != $this->user->id)
 		{
-			// Sign out and redirect to sign in
-			Auth::instance()->logout();
-			Request::instance()->redirect(Route::get('user')->uri(array('action' => 'signin')));
+			// Cover your ears, we're blowing up the whole session!
+			$this->auth->logout(TRUE);
+
+			// Also, set up a new user
+			$this->user = ORM::factory('user');
 		}
-		else
+
+		// Confirm the user's new email
+		if ($this->user->confirm_email($id, $token, $email))
 		{
-			echo 'New email confirmation failed.';
-			// Request::instance()->redirect('');
+			// @todo If logged in, redirect to profile page or something, otherwise to sign in form
+			Message::set(Message::SUCCESS, 'We\'ve updated your email to '.$this->user->email.'.');
+			$this->request->redirect('');
 		}
+
+		Message::set(Message::ERROR, 'Oh no! This confirmation link is invalid.');
+		$this->request->redirect('');
 	}
 
 }

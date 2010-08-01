@@ -7,7 +7,7 @@
 
 <?php echo Form::open() ?>
 
-	<?php echo Kohana::debug($errors) ?>
+	<?php include Kohana::find_file('views', 'partials/errors') ?>
 
 	<p>
 		<?php echo Form::label('username', 'Your username:') ?>
@@ -22,7 +22,7 @@
 
 	<p>
 		<?php echo Form::checkbox('remember', '1', ! empty($post['remember']), array('id' => 'remember')) ?>
-		<?php echo Form::label('remember', 'Keep me logged in on this computer') ?>
+		<?php echo Form::label('remember', 'Keep me signed in on this computer') ?>
 	</p>
 
 	<p>
