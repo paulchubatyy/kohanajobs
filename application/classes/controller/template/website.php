@@ -38,6 +38,7 @@ abstract class Controller_Template_Website extends Controller_Template {
 			// Initialize default values
 			$this->template->title = 'KohanaJobs v2';
 			$this->template->content = '';
+			$this->template->bind_global('user', $this->user);
 		}
 	}
 
