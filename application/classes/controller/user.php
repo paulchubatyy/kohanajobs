@@ -285,7 +285,7 @@ class Controller_User extends Controller_Template_Website {
 		}
 	}
 
-	public function action_confirm_email()
+	public function action_confirm_change_email()
 	{
 		// Grab the user id, token and new email from the confirmation link.
 		$id = (int) Arr::get($_GET, 'id');
@@ -304,7 +304,7 @@ class Controller_User extends Controller_Template_Website {
 		}
 
 		// Confirm the user's new email
-		if ($this->user->confirm_email($id, $token, $email))
+		if ($this->user->confirm_change_email($id, $token, $email))
 		{
 			// @todo If logged in, redirect to profile page or something, otherwise to sign in form
 			Message::set(Message::SUCCESS, 'We\'ve updated your email to '.$this->user->email.'.');

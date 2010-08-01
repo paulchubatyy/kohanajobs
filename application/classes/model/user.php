@@ -244,10 +244,10 @@ class Model_User extends Model_Auth_User {
 			return FALSE;
 
 		// Create e-mail body with email change confirmation link
-		$body = View::factory('email/confirm_email', $this->as_array())
+		$body = View::factory('email/confirm_change_email', $this->as_array())
 			->set('new_email', $data['email'])
 			->set('url', URL::site(
-				Route::get('user')->uri(array('action' => 'confirm_email')).
+				Route::get('user')->uri(array('action' => 'confirm_change_email')).
 				'?id='.$this->id.'&token='.Auth::instance()->hash_password($this->email.'+'.$data['email']).'&email='.base64_encode($data['email']),
 				TRUE // Add protocol to URL
 			));
@@ -286,7 +286,7 @@ class Model_User extends Model_Auth_User {
 	 * @param   string   new email
 	 * @return  boolean
 	 */
-	public function confirm_email($id, $token, $email)
+	public function confirm_change_email($id, $token, $email)
 	{
 		// Email was base64 encoded in URL in order to make it less visible that the URL contains an email address,
 		// not that that would be an immediate security threat. Base64 encoding makes urlencoding not necessary anymore.
