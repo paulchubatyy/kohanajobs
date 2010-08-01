@@ -29,15 +29,9 @@ class Auth_ORM extends Kohana_Auth_ORM {
 			return ! empty($user->$provider);
 		}
 
-		// Check for any OAuth provider
-		foreach ($this->oauth_providers as $provider)
-		{
-			$provider = $provider.'_id';
-			if ( ! empty($user->$provider))
-				return TRUE;
-		}
-
-		return FALSE;
+		// Otherwise, just check the password field.
+		// We don't store passwords for OAuth users.
+		return empty($user->password);
 	}
 
 }
