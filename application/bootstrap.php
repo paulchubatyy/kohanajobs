@@ -125,22 +125,6 @@ if ( ! Route::cache())
 			'directory'  => 'oauth',
 			'action'     => 'index',
 		));
-	// @todo Refactor following three ugly routes to use $_GET?
-	Route::set('user/confirm_signup', 'user/confirm_signup/<id>/<code>', array('id' => '\d++'))
-		->defaults(array(
-			'controller' => 'user',
-			'action'     => 'confirm_signup',
-		));
-	Route::set('user/confirm_email', 'user/confirm_email/<id>/<code>/<new_email>', array('id' => '\d++'))
-		->defaults(array(
-			'controller' => 'user',
-			'action'     => 'confirm_email',
-		));
-	Route::set('user/confirm_reset_password', 'user/confirm_reset_password/<id>/<code>/<time>', array('id' => '\d++', 'time' => '\d++'))
-		->defaults(array(
-			'controller' => 'user',
-			'action'     => 'confirm_reset_password',
-		));
 
 	// Cache the routes in production
 	Route::cache(Kohana::$environment === Kohana::PRODUCTION);

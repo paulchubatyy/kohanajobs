@@ -12,7 +12,7 @@ class Controller_Post extends Controller_Template_Website {
 			->bind('preview', $preview)
 			->bind('errors', $errors);
 
-		if (isset($_POST) AND ! empty($_POST))
+		if ($_POST)
 		{
 			$job->values($_POST, array('company', 'location', 'website', 'email', 'title', 'description', 'apply'));
 
@@ -23,7 +23,7 @@ class Controller_Post extends Controller_Template_Website {
 
 			if ( ! isset($_POST['terms']))
 			{
-				// TODO: Use Validation?
+				// @todo: Use Validation?
 				$errors += array('terms' => __('Agree to the terms of use in order to post a job.'));
 			}
 

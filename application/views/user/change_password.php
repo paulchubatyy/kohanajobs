@@ -2,7 +2,7 @@
 
 <?php echo Form::open() ?>
 
-	<?php echo Kohana::debug($errors) ?>
+	<?php include Kohana::find_file('views', 'partials/errors') ?>
 
 	<p>
 		<?php echo Form::label('old_password', 'Current password:') ?>

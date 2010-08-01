@@ -7,9 +7,11 @@ abstract class Controller_Template_Website extends Controller_Template {
 	 */
 	public $template = 'template/website';
 
-	// The currently logged in user (ORM object),
-	// FALSE if user is not logged in.
-	public $user;
+	// Auth instance
+	protected $auth;
+
+	// The currently active user (ORM object)
+	protected $user;
 
 	/**
 	 * @return  void
@@ -21,9 +23,15 @@ abstract class Controller_Template_Website extends Controller_Template {
 		// Start a session
 		Session::instance();
 
-		// Get the currently logged in user.
+		// Load Auth instance
+		$this->auth = Auth::instance();
+
+		// Get the currently logged in user or set up a new one.
 		// Note that get_user will also do an auto_login check.
-		$this->user = Auth::instance()->get_user();
+		if (($this->user = $this->auth->get_user()) === FALSE)
+		{
+			$this->user = ORM::factory('user');
+		}
 
 		if ($this->auto_render)
 		{

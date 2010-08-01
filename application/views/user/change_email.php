@@ -7,7 +7,7 @@
 
 <?php echo Form::open() ?>
 
-	<?php echo Kohana::debug($errors) ?>
+	<?php include Kohana::find_file('views', 'partials/errors') ?>
 
 	<?php if ( ! Auth::instance()->logged_in_oauth()) { ?>
 		<p>
