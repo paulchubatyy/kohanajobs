@@ -30,7 +30,7 @@
 				<?php if (Auth::instance()->logged_in_oauth()) { ?>
 					You signed in via OAuth —
 				<?php } else { ?>
-					You are signed in as <?php echo HTML::chars(Auth::instance()->get_user()->username) ?> —
+					You are signed in as <?php echo HTML::chars($user->username) ?> —
 					<?php echo HTML::anchor(Route::get('user')->uri(array('action' => 'change_password')), 'Change password') ?> —
 				<?php } ?>
 
