@@ -187,10 +187,10 @@ class Controller_User extends Controller_Template_Website {
 			exit('#B Invalid URL.');
 		}
 
-		if ($time + 3600 < time())
+		if ($time + Kohana::config('site.reset_password_expiration') < time())
 		{
 			// Link expired
-			echo 'Link expired ', abs($time + 3600 - time()), ' seconds ago.';
+			echo 'Link expired ', abs($time + Kohana::config('site.reset_password_expiration') - time()), ' seconds ago.';
 			exit('#C Invalid URL.');
 		}
 
