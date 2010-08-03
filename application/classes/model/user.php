@@ -186,6 +186,55 @@ class Model_User extends Model_Auth_User {
 	}
 
 	/**
+	 * Validates the confirmation link for a password reset.
+	 *
+	 * @param   integer  user id
+	 * @param   string   confirmation token
+	 * @param   integer  timestamp
+	 * @return  boolean
+	 */
+	public function confirm_reset_password_link($id, $token, $time)
+	{
+		// Don't even bother, save us the user lookup query
+		if (empty($id) OR empty($token) OR empty($time))
+			return FALSE;
+
+		// Confirmation link expired
+		if ($time + Kohana::config('site.reset_password_expiration') < time())
+			return FALSE;
+
+		// Load user by id
+		$this->find($id);
+
+		// Invalid user id
+		if ( ! $this->loaded())
+			return FALSE;
+
+		// Invalid confirmation token
+		if ($token !== Auth::instance()->hash_password($this->email.'+'.$this->password.'+'.$this->last_login.'+'.$time, Auth::instance()->find_salt($token)))
+			return FALSE;
+
+		return TRUE;
+	}
+
+	public function confirm_reset_password_form(array & $data)
+	{
+		// Validation setup
+		$data = Validate::factory($data)
+			->filter(TRUE, 'trim')
+			->rules('password', $this->_rules['password'])
+			->rules('password_confirm', $this->_rules['password_confirm']);
+
+		if ( ! $data->check())
+			return FALSE;
+
+		$this->password = $data['password'];
+		$this->save();
+
+		return TRUE;
+	}
+
+	/**
 	 * Validates an array for a matching password and password_confirm field.
 	 *
 	 * @param   array    values to check
@@ -315,7 +364,7 @@ class Model_User extends Model_Auth_User {
 		$this->email = $email;
 		$this->save();
 
-		// It could be that the user changes his email address before he confirmed his signup.
+		// It could be that the user changes his email address before he confirmed his sign-up.
 		// In that case, the original confirm_signup link gets invalid automatically because it uses the email as hashed confirmation code.
 		// No problem, though, if the user confirms his new email address, we can as well confirm his account right here.
 		if ( ! $this->has('roles', ORM::factory('role', array('name' => 'user'))))
