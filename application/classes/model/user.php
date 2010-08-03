@@ -2,6 +2,9 @@
 
 class Model_User extends Model_Auth_User {
 
+	/**
+	 * @return  void
+	 */
 	public function __construct()
 	{
 		// Override default min_length
@@ -24,34 +27,31 @@ class Model_User extends Model_Auth_User {
 			->rules('username', $this->_rules['username'])
 			->rules('password', $this->_rules['password']);
 
-		if ($data->check())
-		{
-			// Attempt to load the user
-			$this->where('username', '=', $data['username'])->find();
+		if ( ! $data->check())
+			return FALSE;
 
-			if ($this->loaded() AND Auth::instance()->login($this, $data['password'], $remember))
-			{
-				// Login is successful
-				return TRUE;
-			}
-			else
-			{
-				$data->error('username', 'invalid');
-			}
-		}
+		// Attempt to load the user
+		$this->where('username', '=', $data['username'])->find();
+
+		// Login is successful
+		if ($this->loaded() AND Auth::instance()->login($this, $data['password'], $remember))
+			return TRUE;
+
+		// Manually add error for non-existing usernames
+		$data->error('username', 'invalid');
 
 		return FALSE;
 	}
 
 	/**
-	 * Validates sign-up information and creates a new user.
+	 * Sign-up: step 1.
+	 * Validates sign-up information and creates a new user with the "login" role only.
 	 *
 	 * @param   array    values to check
 	 * @return  boolean
 	 */
 	public function signup(array & $data)
 	{
-		// Validation setup
 		$data = Validate::factory($data)
 			->filter(TRUE, 'trim')
 			->rules('username', $this->_rules['username'])
@@ -61,49 +61,51 @@ class Model_User extends Model_Auth_User {
 			->callback('username', array($this, 'username_available'))
 			->callback('email', array($this, 'email_available'));
 
-		if ($status = $data->check())
-		{
-			// Add user
-			$status = $this->values($data)->save();
+		if ( ! $data->check())
+			return FALSE;
 
-			// Give user the "login" role
-			$this->add('roles', ORM::factory('role', array('name' => 'login')));
+		// Add user
+		$this->values($data)->save();
 
-			// Create e-mail body with account confirmation link
-			$body = View::factory('email/confirm_signup', $this->as_array())
-				->set('url', URL::site(
-					Route::get('user')->uri(array('action' => 'confirm_signup')).
-					'?id='.$this->id.'&token='.Auth::instance()->hash_password($this->email),
-					TRUE // Add protocol to URL
-				));
+		// Give user the "login" role
+		$this->add('roles', ORM::factory('role', array('name' => 'login')));
 
-			// Get the email configuration
-			$config = Kohana::config('email');
+		// Create e-mail body with account confirmation link
+		$body = View::factory('email/confirm_signup', $this->as_array())
+			->set('url', URL::site(
+				Route::get('user')->uri(array('action' => 'confirm_signup')).
+				'?id='.$this->id.'&token='.Auth::instance()->hash_password($this->email),
+				TRUE // Add protocol to URL
+			));
 
-			// Load Swift Mailer
-			require_once Kohana::find_file('vendor', 'swiftmailer/lib/swift_required');
+		// Get the email configuration
+		$config = Kohana::config('email');
 
-			// Create an email message
-			$message = Swift_Message::newInstance()
-				->setSubject('KohanaJobs Sign-up')
-				->setFrom(array(Kohana::config('site.email') => 'KohanaJobs.com'))
-				->setTo(array($this->email => $this->username))
-				->setBody($body);
+		// Load Swift Mailer
+		require_once Kohana::find_file('vendor', 'swiftmailer/lib/swift_required');
 
-			// Connect to the server
-			$transport = Swift_SmtpTransport::newInstance($config->server)
-				->setUsername($config->username)
-				->setPassword($config->password);
+		// Create an email message
+		$message = Swift_Message::newInstance()
+			->setSubject('KohanaJobs Sign-up')
+			->setFrom(array(Kohana::config('site.email') => 'KohanaJobs.com'))
+			->setTo(array($this->email => $this->username))
+			->setBody($body);
 
-			// Send the message
-			Swift_Mailer::newInstance($transport)->send($message);
-		}
+		// Connect to the server
+		$transport = Swift_SmtpTransport::newInstance($config->server)
+			->setUsername($config->username)
+			->setPassword($config->password);
 
-		return $status;
+		// Send the message
+		Swift_Mailer::newInstance($transport)->send($message);
+
+		return TRUE;
 	}
 
 	/**
+	 * Sign-up: step 2.
 	 * Confirms a user sign-up by validating the confirmation link.
+	 * Adds the "user" role to the user.
 	 *
 	 * @param   integer  user id
 	 * @param   string   confirmation token
@@ -137,9 +139,15 @@ class Model_User extends Model_Auth_User {
 		return TRUE;
 	}
 
+	/**
+	 * Reset password: step 1.
+	 * The form where a user enters the email address he signed up with.
+	 *
+	 * @param   array    values to check
+	 * @return  boolean
+	 */
 	public function reset_password(array & $data)
 	{
-		// Validation setup
 		$data = Validate::factory($data)
 			->filter(TRUE, 'trim')
 			->rules('email', $this->_rules['email'])
@@ -186,6 +194,7 @@ class Model_User extends Model_Auth_User {
 	}
 
 	/**
+	 * Reset password: step 2a.
 	 * Validates the confirmation link for a password reset.
 	 *
 	 * @param   integer  user id
@@ -217,9 +226,15 @@ class Model_User extends Model_Auth_User {
 		return TRUE;
 	}
 
+	/**
+	 * Reset password: step 2b.
+	 * Validates and saves a new password.
+	 *
+	 * @param   array    values to check
+	 * @return  boolean
+	 */
 	public function confirm_reset_password_form(array & $data)
 	{
-		// Validation setup
 		$data = Validate::factory($data)
 			->filter(TRUE, 'trim')
 			->rules('password', $this->_rules['password'])
@@ -228,6 +243,7 @@ class Model_User extends Model_Auth_User {
 		if ( ! $data->check())
 			return FALSE;
 
+		// Store the new password
 		$this->password = $data['password'];
 		$this->save();
 
@@ -235,7 +251,7 @@ class Model_User extends Model_Auth_User {
 	}
 
 	/**
-	 * Validates an array for a matching password and password_confirm field.
+	 * The form where a users enters his new password, and his current password (for security).
 	 *
 	 * @param   array    values to check
 	 * @return  boolean
@@ -249,19 +265,19 @@ class Model_User extends Model_Auth_User {
 			->rules('password_confirm', $this->_rules['password_confirm'])
 			->callback('old_password', array($this, 'check_password'));
 
-		if ($status = $data->check())
-		{
-			// Change the password
-			$this->password = $data['password'];
+		if ( ! $data->check())
+			return FALSE;
 
-			$status = $this->save();
-		}
+		// Store the changed password
+		$this->password = $data['password'];
+		$this->save();
 
-		return $status;
+		return TRUE;
 	}
 
 	/**
-	 * Step 1 in an email address change: the form.
+	 * Change email: step 1.
+	 * The form where a users enters his new email, and his current password (for security).
 	 *
 	 * @param   array    values to check
 	 * @return  boolean
@@ -273,9 +289,9 @@ class Model_User extends Model_Auth_User {
 			->rules('email', $this->_rules['email'])
 			->callback('email', array($this, 'email_available'));
 
-		// Password check only required for non-OAuth users
 		if ( ! Auth::instance()->logged_in_oauth())
 		{
+			// Password check is only required for non-OAuth users
 			$data->rules('password', $this->_rules['password'])
 				->callback('password', array($this, 'check_password'));
 		}
@@ -289,6 +305,7 @@ class Model_User extends Model_Auth_User {
 			$data->error('email', 'not_changed');
 		}
 
+		// Any errors?
 		if ($data->errors())
 			return FALSE;
 
@@ -328,7 +345,9 @@ class Model_User extends Model_Auth_User {
 	}
 
 	/**
-	 * Step 2 in an email address change: the confirmation.
+	 * Change email: step 2.
+	 * Validates the confirmation link and saves the new email.
+	 * Also adds the "user" role to the user, in case his sign-up wasn't confirmed yet.
 	 *
 	 * @param   integer  user id
 	 * @param   string   confirmation token
@@ -391,16 +410,22 @@ class Model_User extends Model_Auth_User {
 			$stored_password = Auth::instance()->password($user->username);
 			$salt = Auth::instance()->find_salt($stored_password);
 
+			// Correct password
 			if ($stored_password === Auth::instance()->hash_password($data[$field], $salt))
-			{
-				// Correct password
 				return;
-			}
 		}
 
 		$data->error($field, 'check_password');
 	}
 
+	/**
+	 * Triggers an error if the email does not exist.
+	 * Validation callback.
+	 *
+	 * @param   object  Validate
+	 * @param   string  field name
+	 * @return  void
+	 */
 	public function email_not_available(Validate $data, $field)
 	{
 		if ( ! $this->unique_key_exists($data[$field], 'email'))
@@ -410,8 +435,7 @@ class Model_User extends Model_Auth_User {
 	}
 
 	/**
-	 * Allows a model use both email and username as unique identifiers.
-	 * This method also adds support for the id field.
+	 * Allows a model to use a user id, in addition to email and username, as unique identifier.
 	 *
 	 * @param   mixed   unique value
 	 * @return  string  field name
