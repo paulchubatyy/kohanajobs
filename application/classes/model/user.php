@@ -229,6 +229,7 @@ class Model_User extends Model_Auth_User {
 	/**
 	 * Reset password: step 2b.
 	 * Validates and saves a new password.
+	 * Also adds the "user" role to the user, in case his sign-up wasn't confirmed yet.
 	 *
 	 * @param   array    values to check
 	 * @return  boolean
@@ -246,6 +247,16 @@ class Model_User extends Model_Auth_User {
 		// Store the new password
 		$this->password = $data['password'];
 		$this->save();
+
+		// It could be that the user resets his password before he confirmed his sign-up,
+		// or a the reset password form could be used in case the original sign-up confirmation mail got lost.
+		// Since the user could only come to this point if he supplied a valid email address,
+		// we confirm his account right here.
+		if ( ! $this->has('roles', ORM::factory('role', array('name' => 'user'))))
+		{
+			// Give the user the "user" role
+			$this->add('roles', ORM::factory('role', array('name' => 'user')));
+		}
 
 		return TRUE;
 	}
@@ -371,7 +382,7 @@ class Model_User extends Model_Auth_User {
 		if ( ! $this->loaded())
 			return FALSE;
 
-		// Invalid confirmation code
+		// Invalid confirmation token
 		if ($token !== Auth::instance()->hash_password($this->email.'+'.$email, Auth::instance()->find_salt($token)))
 			return FALSE;
 
@@ -384,7 +395,7 @@ class Model_User extends Model_Auth_User {
 		$this->save();
 
 		// It could be that the user changes his email address before he confirmed his sign-up.
-		// In that case, the original confirm_signup link gets invalid automatically because it uses the email as hashed confirmation code.
+		// In that case, the original confirm_signup link gets invalid automatically because it uses the email as hashed confirmation token.
 		// No problem, though, if the user confirms his new email address, we can as well confirm his account right here.
 		if ( ! $this->has('roles', ORM::factory('role', array('name' => 'user'))))
 		{
