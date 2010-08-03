@@ -101,16 +101,8 @@ class Controller_User extends Controller_Template_Website {
 		$id = (int) Arr::get($_GET, 'id');
 		$token = (string) Arr::get($_GET, 'token');
 
-		// The user trying to confirm his sign-up is accessing the site
-		// while another user (on the same browser) was still logged in.
-		if ($this->auth->logged_in() AND $id != $this->user->id)
-		{
-			// Cover your ears, we're blowing up the whole session!
-			$this->auth->logout(TRUE);
-
-			// Also, set up a new user
-			$this->user = ORM::factory('user');
-		}
+		// Make sure nobody else is logged in
+		$this->prevent_user_collision($id);
 
 		// Confirm the user's sign-up
 		if ($this->user->confirm_signup($id, $token))
@@ -160,16 +152,8 @@ class Controller_User extends Controller_Template_Website {
 		$token = (string) Arr::get($_GET, 'token');
 		$time = (int) Arr::get($_GET, 'time');
 
-		// The user trying to reset his password is accessing the site
-		// while another user (on the same browser) was still logged in.
-		if ($this->auth->logged_in() AND $id != $this->user->id)
-		{
-			// Cover your ears, we're blowing up the whole session!
-			$this->auth->logout(TRUE);
-
-			// Also, set up a new user
-			$this->user = ORM::factory('user');
-		}
+		// Make sure nobody else is logged in
+		$this->prevent_user_collision($id);
 
 		// Validate the confirmation link first
 		if ( ! $this->user->confirm_reset_password_link($id, $token, $time))
@@ -262,16 +246,8 @@ class Controller_User extends Controller_Template_Website {
 		$token = (string) Arr::get($_GET, 'token');
 		$email = (string) Arr::get($_GET, 'email');
 
-		// The user trying to confirm his new email is accessing the site
-		// while another user (on the same browser) was still logged in.
-		if ($this->auth->logged_in() AND $id != $this->user->id)
-		{
-			// Cover your ears, we're blowing up the whole session!
-			$this->auth->logout(TRUE);
-
-			// Also, set up a new user
-			$this->user = ORM::factory('user');
-		}
+		// Make sure nobody else is logged in
+		$this->prevent_user_collision($id);
 
 		// Confirm the user's new email
 		if ($this->user->confirm_change_email($id, $token, $email))
@@ -283,6 +259,27 @@ class Controller_User extends Controller_Template_Website {
 
 		Message::set(Message::ERROR, 'Oh no! This confirmation link is invalid.');
 		$this->request->redirect('');
+	}
+
+	/**
+	 * If a user is currently logged in, but his id does not match the one provided here,
+	 * log that user out and reset the user object. This situation could arise, for example,
+	 * when a user follows a confirmation links while another user was still logged in.
+	 *
+	 * @param   integer  user id of the current user
+	 * @return  void
+	 */
+	protected function prevent_user_collision($id)
+	{
+		// Another user (on the same browser) is still logged in
+		if ($this->auth->logged_in() AND $id != $this->user->id)
+		{
+			// Cover your ears, we're blowing up the whole session!
+			$this->auth->logout(TRUE);
+
+			// Also, override the user object with a new one
+			$this->user = ORM::factory('user');
+		}
 	}
 
 }
