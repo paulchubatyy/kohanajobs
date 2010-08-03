@@ -165,7 +165,7 @@ class Model_User extends Model_Auth_User {
 			->set('time', $time)
 			->set('url', URL::site(
 				Route::get('user')->uri(array('action' => 'confirm_reset_password')).
-				'?id='.$this->id.'&token='.Auth::instance()->hash_password($this->email.'+'.$this->password.'+'.$this->last_login.'+'.$time).'&time='.$time,
+				'?id='.$this->id.'&token='.Auth::instance()->hash_password($this->email.'+'.$this->password.'+'.$time).'&time='.$time,
 				TRUE // Add protocol to URL
 			));
 
@@ -220,7 +220,7 @@ class Model_User extends Model_Auth_User {
 			return FALSE;
 
 		// Invalid confirmation token
-		if ($token !== Auth::instance()->hash_password($this->email.'+'.$this->password.'+'.$this->last_login.'+'.$time, Auth::instance()->find_salt($token)))
+		if ($token !== Auth::instance()->hash_password($this->email.'+'.$this->password.'+'.$time, Auth::instance()->find_salt($token)))
 			return FALSE;
 
 		return TRUE;
