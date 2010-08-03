@@ -4,7 +4,14 @@
  */
 return array(
 
-	// @todo Site email address
-	// @todo Password reset link expiration time
+	/**
+	 * Main email address
+	 */
+	'email' => 'info@kohanajobs.com',
+
+	/**
+	 * Number of seconds before password reset confirmation links expire
+	 */
+	'reset_password_expiration' => 3600, // 1 hour
 
 );

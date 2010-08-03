@@ -86,7 +86,7 @@ class Model_User extends Model_Auth_User {
 			// Create an email message
 			$message = Swift_Message::newInstance()
 				->setSubject('KohanaJobs Sign-up')
-				->setFrom(array('info@kohanajobs.com' => 'KohanaJobs.com'))
+				->setFrom(array(Kohana::config('site.email') => 'KohanaJobs.com'))
 				->setTo(array($this->email => $this->username))
 				->setBody($body);
 
@@ -170,7 +170,7 @@ class Model_User extends Model_Auth_User {
 		// Create an email message
 		$message = Swift_Message::newInstance()
 			->setSubject('KohanaJobs - Reset password')
-			->setFrom(array('info@kohanajobs.com' => 'KohanaJobs.com'))
+			->setFrom(array(Kohana::config('site.email') => 'KohanaJobs.com'))
 			->setTo(array($this->email => $this->username))
 			->setBody($body);
 
@@ -261,7 +261,7 @@ class Model_User extends Model_Auth_User {
 		// Create an email message
 		$message = Swift_Message::newInstance()
 			->setSubject('KohanaJobs - Change email')
-			->setFrom(array('info@kohanajobs.com' => 'KohanaJobs.com'))
+			->setFrom(array(Kohana::config('site.email') => 'KohanaJobs.com'))
 			// @todo OAuth users may be entering their first email address, then also sent it to that address, not the old one (NULL value in db)
 			// @todo OAuth users don't have a username field, leave it out, or use other name field if available
 			->setTo(array($data['email'] => $this->username))
