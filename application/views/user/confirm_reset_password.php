@@ -1,6 +1,6 @@
 <h1>Choose a new password</h1>
 
-<?php echo Form::open() ?>
+<?php echo Form::open(Request::current()->uri.URL::query()) // The query string (with token) is required here ?>
 
 	<?php include Kohana::find_file('views', 'partials/errors') ?>
 

@@ -116,6 +116,7 @@ class Controller_User extends Controller_Template_Website {
 		if ($this->user->confirm_signup($id, $token))
 		{
 			// @todo If logged in, redirect to profile page or something, otherwise to sign in form
+			// @todo If account already confirmed, show Message::NOTICE
 			Message::set(Message::SUCCESS, 'Rejoice. Your sign-up has been confirmed.');
 			$this->request->redirect('');
 		}
@@ -126,11 +127,11 @@ class Controller_User extends Controller_Template_Website {
 
 	public function action_reset_password()
 	{
-		// The user is already logged in
+		// The user is logged in, yet it is possible that he lost his password anyway
 		if ($this->auth->logged_in())
 		{
-			Message::set(Message::NOTICE, 'You are still logged in. Change your password on this page.');
-			$this->request->redirect(Route::get('user')->uri(array('action' => 'change_password')));
+			// @todo Add real link to the message
+			Message::set(Message::NOTICE, 'Remember your current password? [Go to the change password form](link).');
 		}
 
 		// Show form
@@ -170,28 +171,11 @@ class Controller_User extends Controller_Template_Website {
 			$this->user = ORM::factory('user');
 		}
 
-		// @todo Move most of the following code to the user model
-
-		// Load user by id
-		$this->user->find($id);
-
-		if ( ! $this->user->loaded())
+		// Validate the confirmation link first
+		if ( ! $this->user->confirm_reset_password_link($id, $token, $time))
 		{
-			// Invalid user id
-			exit('#A Invalid URL.');
-		}
-
-		if ($token !== $this->auth->hash_password($this->user->email.'+'.$this->user->password.'+'.$this->user->last_login.'+'.$time, $this->auth->find_salt($token)))
-		{
-			// Invalid confirmation code
-			exit('#B Invalid URL.');
-		}
-
-		if ($time + Kohana::config('site.reset_password_expiration') < time())
-		{
-			// Link expired
-			echo 'Link expired ', abs($time + Kohana::config('site.reset_password_expiration') - time()), ' seconds ago.';
-			exit('#C Invalid URL.');
+			Message::set(Message::ERROR, 'The confirmation link to reset your password has expired or is invalid.');
+			$this->request->redirect('');
 		}
 
 		// Show form
@@ -202,22 +186,8 @@ class Controller_User extends Controller_Template_Website {
 		// Form submitted
 		if ($_POST)
 		{
-			// $post bound to template
-			$post = Validate::factory($_POST)
-				->filter(TRUE, 'trim')
-				->rules('password', array(
-					'not_empty'  => NULL,
-					'min_length' => array(5),
-					'max_length' => array(42),
-				))
-				->rule('password_confirm', 'matches', array('password'));
-
-			if ($post->check())
+			if ($this->user->confirm_reset_password_form($post = $_POST))
 			{
-				// Save new password
-				$this->user->password = $post['password'];
-				$this->user->save();
-
 				Message::set(Message::SUCCESS, 'You can now sign in with your new password.');
 				$this->request->redirect(Route::get('user')->uri(array('action' => 'signin')));
 			}
