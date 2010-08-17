@@ -7,7 +7,7 @@
 	<title><?php echo HTML::chars($title) ?></title>
 
 	<link rel="stylesheet" href="<?php echo URL::site('css/kohanajobs.css') ?>" />
-
+	<link rel="alternate" type="application/rss+xml" title="Kohana Jobs rss" href="<?php echo URL::site('rss') ?>" />
 </head>
 <body>
 
