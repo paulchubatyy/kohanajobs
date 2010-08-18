@@ -120,6 +120,13 @@ if ( ! Route::cache())
 			'controller' => 'post',
 			'action'     => 'index',
 		));
+	
+	// Edit a job
+	Route::set('edit', 'edit/<id>(/<action>)', array('id' => '\d++'))
+		->defaults(array(
+			'controller' => 'edit',
+			'action'     => 'index',
+		));
 
 	// User system related
 	Route::set('user', 'user/<action>')
@@ -130,6 +137,12 @@ if ( ! Route::cache())
 	Route::set('user/oauth', 'oauth/<controller>(/<action>)')
 		->defaults(array(
 			'directory'  => 'oauth',
+			'action'     => 'index',
+		));
+	
+	Route::set('rss', 'rss')
+		->defaults(array(
+			'controller' => 'rss',
 			'action'     => 'index',
 		));
 
