@@ -1,7 +1,7 @@
 <h1><?php echo ucfirst(Text::number($total_jobs)), ' ', Inflector::plural('job', $total_jobs) ?> available</h1>
 
 <?php if (isset($term)) : ?>
-	<h2><?php echo __('You have searched for: :term', array(':term' => $term)) ;?></h2>
+	<h2><?php echo __('You have searched for: :term', array(':term' => HTML::chars($term))) ;?></h2>
 <?php endif; ?>
 
 <table summary="<?php echo __('List of all Kohana jobs (most recent first)') ?>">
