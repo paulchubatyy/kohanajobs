@@ -24,4 +24,16 @@ class Model_Job extends ORM {
 		TRUE => array('trim' => NULL),
 	);
 
+	/**
+	 * Set the condition for search fields
+	 * @param	string
+	 * @return	object
+	 */
+	public function search($term)
+	{
+		return $this->or_where('company', 'LIKE', '%'.$term.'%')
+			->or_where('location', 'LIKE', '%'.$term.'%')
+			->or_where('title', 'LIKE', '%'.$term.'%')
+			->or_where('description', 'LIKE', '%'.$term.'%');
+	}
 }
