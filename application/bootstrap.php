@@ -100,6 +100,13 @@ if ( ! Route::cache())
 			'action'     => 'index',
 		));
 
+	// Search jobs
+	Route::set('jobs_search', 'jobs/search/<term>')
+		->defaults(array(
+			'controller' => 'jobs',
+			'action'     => 'search',
+		));
+
 	// A single job
 	Route::set('job', 'jobs/<id>', array('id' => '\d++'))
 		->defaults(array(
