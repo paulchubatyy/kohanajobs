@@ -100,8 +100,8 @@ if ( ! Route::cache())
 			'action'     => 'index',
 		));
 
-	// Search jobs
-	Route::set('search', 'jobs/search/<term>')
+	// Search results
+	Route::set('search', 'jobs/search(/<term>)')
 		->defaults(array(
 			'controller' => 'jobs',
 			'action'     => 'search',
@@ -120,7 +120,7 @@ if ( ! Route::cache())
 			'controller' => 'post',
 			'action'     => 'index',
 		));
-	
+
 	// Edit a job
 	Route::set('edit', 'edit/<id>(/<action>)', array('id' => '\d++'))
 		->defaults(array(
@@ -139,7 +139,7 @@ if ( ! Route::cache())
 			'directory'  => 'oauth',
 			'action'     => 'index',
 		));
-	
+
 	Route::set('rss', 'rss')
 		->defaults(array(
 			'controller' => 'rss',
