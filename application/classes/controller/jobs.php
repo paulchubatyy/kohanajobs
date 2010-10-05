@@ -31,7 +31,7 @@ class Controller_Jobs extends Controller_Template_Website {
 		));
 
 		$this->template->content = View::factory('jobs')
-			->set('jobs', $this->jobs->order_by('created', 'DESC')->limit($pagination->items_per_page)->offset($pagination->offset)->find_all())
+			->set('jobs', $this->jobs->search($term)->order_by('created', 'DESC')->limit($pagination->items_per_page)->offset($pagination->offset)->find_all())
 			->set('total_jobs', $total)
 			->set('pagination', $pagination)
 			->set('term', $term);
