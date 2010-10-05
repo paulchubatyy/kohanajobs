@@ -101,7 +101,7 @@ if ( ! Route::cache())
 		));
 
 	// Search jobs
-	Route::set('jobs_search', 'jobs/search/<term>')
+	Route::set('search', 'jobs/search/<term>')
 		->defaults(array(
 			'controller' => 'jobs',
 			'action'     => 'search',

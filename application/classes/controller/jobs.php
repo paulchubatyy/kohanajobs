@@ -10,7 +10,7 @@ class Controller_Jobs extends Controller_Template_Website {
 
 	public function action_index()
 	{
-		$total      = $this->jobs->count_all();
+		$total = $this->jobs->count_all();
 		$pagination = Pagination::factory(array(
 			'total_items' => $total,
 			'items_per_page' => 15,

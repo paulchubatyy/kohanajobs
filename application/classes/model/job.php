@@ -25,9 +25,10 @@ class Model_Job extends ORM {
 	);
 
 	/**
-	 * Set the condition for search fields
-	 * @param	string
-	 * @return	object
+	 * Sets the condition for search fields.
+	 *
+	 * @param   string  search term
+	 * @return  object  ORM
 	 */
 	public function search($term)
 	{
